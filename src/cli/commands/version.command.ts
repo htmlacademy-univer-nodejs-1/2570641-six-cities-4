@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from './command.interface.js';
+import chalk from 'chalk';
 
 type PackageJSONConfig = {
   version: string;
@@ -25,10 +26,10 @@ export class VersionCommand implements Command {
     const importedContent: unknown = JSON.parse(jsonContent);
 
     if (! isPackageJSONConfig(importedContent)) {
-      throw new Error('Failed to parse json content.');
+      throw new Error(chalk.red('Failed to parse json content.'));
     }
 
-    return importedContent.version;
+    return chalk.green(importedContent.version);
   }
 
   public getName(): string {
@@ -40,10 +41,10 @@ export class VersionCommand implements Command {
       const version = this.readVersion();
       console.info(version);
     } catch (error: unknown) {
-      console.error(`Failed to read version from ${this.filePath}`);
+      console.error(chalk.red(`Failed to read version from ${this.filePath}`));
 
       if (error instanceof Error) {
-        console.error(error.message);
+        console.error(chalk.red(error.message));
       }
     }
   }
