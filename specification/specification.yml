@@ -1,0 +1,894 @@
+openapi: 3.0.3
+info:
+  title: Six Cities API
+  description: API for Six Cities application
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+    
+tags:
+  - name: offers
+    description: Operations related to property offers
+  - name: users
+    description: Operations related to users
+  - name: comments
+    description: Operations related to comments
+  - name: favorites
+    description: Operations related to favorite offers
+
+paths:
+  /offers:
+    get:
+      tags:
+        - offers
+      summary: Get all offers
+      description: Returns a list of all property offers (max 60 by default)
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of offers to return
+          schema:
+            type: integer
+            default: 60
+      responses:
+        '200':
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+                  
+    post:
+      tags:
+        - offers
+      summary: Create a new offer
+      description: Creates a new property offer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferCreate'
+      responses:
+        '201':
+          description: Offer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+  
+  /offers/{offerId}:
+    get:
+      tags:
+        - offers
+      summary: Get offer by ID
+      description: Returns a specific offer by its ID
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '200':
+          description: Offer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '404':
+          description: Offer not found
+      
+    patch:
+      tags:
+        - offers
+      summary: Update an offer
+      description: Updates an existing offer (only owner can edit)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferUpdate'
+      responses:
+        '200':
+          description: Offer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - user is not the owner of the offer
+        '404':
+          description: Offer not found
+      
+    delete:
+      tags:
+        - offers
+      summary: Delete an offer
+      description: Deletes an existing offer (only owner can delete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '204':
+          description: Offer deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - user is not the owner of the offer
+        '404':
+          description: Offer not found
+  
+  /offers/premium/{city}:
+    get:
+      tags:
+        - offers
+      summary: Get premium offers for a city
+      description: Returns premium offers for a specific city (max 3)
+      parameters:
+        - $ref: '#/components/parameters/city'
+      responses:
+        '200':
+          description: List of premium offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+  
+  /offers/{offerId}/comments:
+    get:
+      tags:
+        - comments
+      summary: Get comments for an offer
+      description: Returns all comments for a specific offer (max 50)
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Offer not found
+      
+    post:
+      tags:
+        - comments
+      summary: Add a comment to an offer
+      description: Creates a new comment for a specific offer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Offer not found
+  
+  /users/register:
+    post:
+      tags:
+        - users
+      summary: Register a new user
+      description: Creates a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request or email already exists
+  
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Login user
+      description: Authenticates a user and returns a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid credentials
+      
+    get:
+      tags:
+        - users
+      summary: Get current user
+      description: Returns the current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+  
+  /users/{userId}/avatar:
+    post:
+      tags:
+        - users
+      summary: Upload user avatar
+      description: Uploads a new avatar for the user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid file
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not the user's own avatar
+        '404':
+          description: User not found
+  
+  /favorites:
+    get:
+      tags:
+        - favorites
+      summary: Get favorite offers
+      description: Returns all favorite offers for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of favorite offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+        '401':
+          description: Unauthorized
+  
+  /favorites/{offerId}/{status}:
+    post:
+      tags:
+        - favorites
+      summary: Add or remove offer from favorites
+      description: Adds or removes an offer from the user's favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+        - $ref: '#/components/parameters/status'
+      responses:
+        '200':
+          description: Favorite status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Offer not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  parameters:
+    offerId:
+      name: offerId
+      in: path
+      description: ID of the offer
+      required: true
+      schema:
+        type: string
+        
+    userId:
+      name: userId
+      in: path
+      description: ID of the user
+      required: true
+      schema:
+        type: string
+        
+    city:
+      name: city
+      in: path
+      description: City name
+      required: true
+      schema:
+        type: string
+        enum:
+          - Paris
+          - Cologne
+          - Brussels
+          - Amsterdam
+          - Hamburg
+          - Dusseldorf
+          
+    status:
+      name: status
+      in: path
+      description: 1 to add to favorites, 0 to remove
+      required: true
+      schema:
+        type: integer
+        enum: [0, 1]
+  
+  schemas:
+    Location:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: float
+          example: 48.85661
+        longitude:
+          type: number
+          format: float
+          example: 2.35222
+      required:
+        - latitude
+        - longitude
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+          example: "Alice Johnson"
+        email:
+          type: string
+          format: email
+          example: "alice@example.com"
+        avatar:
+          type: string
+          example: "default-avatar.png"
+        type:
+          type: string
+          enum:
+            - Regular
+            - Pro
+          example: "Regular"
+      required:
+        - id
+        - name
+        - email
+        - type
+    
+    UserRegister:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+          example: "Alice Johnson"
+        email:
+          type: string
+          format: email
+          example: "alice@example.com"
+        password:
+          type: string
+          minLength: 6
+          maxLength: 12
+          example: "password123"
+        type:
+          type: string
+          enum:
+            - Regular
+            - Pro
+          default: Regular
+          example: "Regular"
+      required:
+        - name
+        - email
+        - password
+    
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "alice@example.com"
+        password:
+          type: string
+          example: "password123"
+      required:
+        - email
+        - password
+    
+    OfferPreview:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        title:
+          type: string
+          example: "Beautiful apartment in the heart of Paris"
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 150
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: "apartment"
+        isFavorite:
+          type: boolean
+          example: false
+        date:
+          type: string
+          format: date-time
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+          example: "Paris"
+        previewImage:
+          type: string
+          example: "https://example.com/images/apartment-preview.jpg"
+        isPremium:
+          type: boolean
+          example: true
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4.8
+        commentCount:
+          type: integer
+          example: 5
+      required:
+        - id
+        - title
+        - price
+        - type
+        - isFavorite
+        - date
+        - city
+        - previewImage
+        - isPremium
+        - rating
+        - commentCount
+    
+    Offer:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: "Beautiful apartment in the heart of Paris"
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: "A cozy and modern apartment with a stunning view of the Eiffel Tower"
+        date:
+          type: string
+          format: date-time
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+          example: "Paris"
+        previewImage:
+          type: string
+          example: "https://example.com/images/apartment-preview.jpg"
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+          example:
+            - "https://example.com/images/apartment-1.jpg"
+            - "https://example.com/images/apartment-2.jpg"
+            - "https://example.com/images/apartment-3.jpg"
+            - "https://example.com/images/apartment-4.jpg"
+            - "https://example.com/images/apartment-5.jpg"
+            - "https://example.com/images/apartment-6.jpg"
+        isPremium:
+          type: boolean
+          example: true
+        isFavorite:
+          type: boolean
+          example: false
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4.8
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: "apartment"
+        roomCount:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 3
+        guestCount:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 4
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 150
+        amenities:
+          type: array
+          items:
+            type: string
+            enum:
+              - Breakfast
+              - Air conditioning
+              - Laptop friendly workspace
+              - Baby seat
+              - Washer
+              - Towels
+              - Fridge
+          example:
+            - Breakfast
+            - Air conditioning
+            - Laptop friendly workspace
+        userId:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        commentCount:
+          type: integer
+          example: 5
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+        - id
+        - title
+        - description
+        - date
+        - city
+        - previewImage
+        - images
+        - isPremium
+        - isFavorite
+        - rating
+        - type
+        - roomCount
+        - guestCount
+        - price
+        - amenities
+        - userId
+        - location
+        - commentCount
+    
+    OfferCreate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: "Beautiful apartment in the heart of Paris"
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: "A cozy and modern apartment with a stunning view of the Eiffel Tower"
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+          example: "Paris"
+        previewImage:
+          type: string
+          example: "https://example.com/images/apartment-preview.jpg"
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+          example:
+            - "https://example.com/images/apartment-1.jpg"
+            - "https://example.com/images/apartment-2.jpg"
+            - "https://example.com/images/apartment-3.jpg"
+            - "https://example.com/images/apartment-4.jpg"
+            - "https://example.com/images/apartment-5.jpg"
+            - "https://example.com/images/apartment-6.jpg"
+        isPremium:
+          type: boolean
+          example: true
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4.8
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: "apartment"
+        roomCount:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 3
+        guestCount:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 4
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 150
+        amenities:
+          type: array
+          items:
+            type: string
+            enum:
+              - Breakfast
+              - Air conditioning
+              - Laptop friendly workspace
+              - Baby seat
+              - Washer
+              - Towels
+              - Fridge
+          example:
+            - Breakfast
+            - Air conditioning
+            - Laptop friendly workspace
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+        - title
+        - description
+        - city
+        - previewImage
+        - images
+        - isPremium
+        - rating
+        - type
+        - roomCount
+        - guestCount
+        - price
+        - amenities
+        - location
+    
+    OfferUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: "Updated apartment title"
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: "Updated apartment description"
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+        previewImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+        isPremium:
+          type: boolean
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+        roomCount:
+          type: integer
+          minimum: 1
+          maximum: 8
+        guestCount:
+          type: integer
+          minimum: 1
+          maximum: 10
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+        amenities:
+          type: array
+          items:
+            type: string
+            enum:
+              - Breakfast
+              - Air conditioning
+              - Laptop friendly workspace
+              - Baby seat
+              - Washer
+              - Towels
+              - Fridge
+        location:
+          $ref: '#/components/schemas/Location'
+    
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+          example: "Great place! Very clean and comfortable."
+        publishDate:
+          type: string
+          format: date-time
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4.5
+        author:
+          $ref: '#/components/schemas/User'
+        offerId:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+      required:
+        - id
+        - text
+        - publishDate
+        - rating
+        - author
+        - offerId
+    
+    CommentCreate:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+          example: "Great place! Very clean and comfortable."
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4.5
+      required:
+        - text
+        - rating 
