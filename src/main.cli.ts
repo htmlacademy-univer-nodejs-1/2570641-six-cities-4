@@ -1,15 +1,21 @@
 #!/usr/bin/env node
-import { CLIApplication, GenerateCommand, HelpCommand, ImportCommand, VersionCommand } from './cli/index.js';
+import 'reflect-metadata';
+import { CLIApplication } from './cli/index.js';
+import { createApplicationContainer, types } from './shared/container/index.js';
+import { Command } from './cli/commands/command.interface.js';
 
 async function bootstrap() {
-  const cliApplication = new CLIApplication();
-  cliApplication.registerCommands([
-    new HelpCommand(),
-    new VersionCommand(),
-    new ImportCommand(),
-    new GenerateCommand(),
-  ]);
+  const container = createApplicationContainer();
+  const cliApplication = container.get<CLIApplication>(types.CLIApplication);
 
+  const commands = [
+    container.get<Command>(types.HelpCommand),
+    container.get<Command>(types.VersionCommand),
+    container.get<Command>(types.ImportCommand),
+    container.get<Command>(types.GenerateCommand),
+  ];
+
+  cliApplication.registerCommands(commands);
   await cliApplication.processCommand(process.argv);
 }
 

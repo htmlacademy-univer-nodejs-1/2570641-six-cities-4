@@ -1,12 +1,14 @@
+import { injectable, unmanaged } from 'inversify';
 import { FileReader } from './file-reader.interface.js';
 import { readFileSync } from 'node:fs';
 import { Offer, OfferCity, OfferConvenience, OfferType, UserType } from '../../types/index.js';
 
+@injectable()
 export class TSVFileReader implements FileReader {
   private rawData = '';
 
   constructor(
-    private readonly filename: string
+    @unmanaged() private readonly filename: string
   ) { }
 
   public read(): void {

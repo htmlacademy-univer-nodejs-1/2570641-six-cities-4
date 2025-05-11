@@ -1,11 +1,13 @@
+import { injectable, unmanaged } from 'inversify';
 import { createWriteStream } from 'node:fs';
 import { WriteStream } from 'node:fs';
 import { Offer } from '../../types/index.js';
 
+@injectable()
 export class TSVFileWriter {
   private stream: WriteStream;
 
-  constructor(public readonly filename: string) {
+  constructor(@unmanaged() public readonly filename: string) {
     this.stream = createWriteStream(filename, {
       flags: 'w',
       encoding: 'utf-8',
