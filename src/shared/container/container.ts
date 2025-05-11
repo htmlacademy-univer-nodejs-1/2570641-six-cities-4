@@ -19,59 +19,45 @@ import { ImportCommand } from '../../cli/commands/import.command.js';
 import { GenerateCommand } from '../../cli/commands/generate.command.js';
 import { OfferGenerator } from '../offer-generator/offer-generator.js';
 import { UserEntity, OfferEntity } from '../modules/index.js';
+import { UserService } from '../modules/user/user.service.js';
+import { OfferService } from '../modules/offer/offer.service.js';
+import { UserRepositoryInterface } from '../modules/user/user-repository.interface.js';
+import { OfferRepositoryInterface } from '../modules/offer/offer-repository.interface.js';
+import { DefaultUserRepository } from '../modules/user/default-user.repository.js';
+import { DefaultOfferRepository } from '../modules/offer/default-offer.repository.js';
 import { COMPONENT } from '../types/component.types.js';
 import { getModelForClass } from '@typegoose/typegoose';
-import {
-  DefaultUserRepository, UserRepositoryInterface,
-  DefaultOfferRepository, OfferRepositoryInterface,
-  UserService, OfferService
-} from '../modules/index.js';
 
-export function createApplicationContainer() {
-  const container = new Container();
+const container = new Container();
 
-  container.bind<Application>(types.Application).to(Application).inSingletonScope();
-  container.bind<LoggerInterface>(types.LoggerInterface).to(PinoLogger).inSingletonScope();
-  container.bind<ConfigInterface>(types.ConfigInterface).to(Config).inSingletonScope();
-  container.bind<DatabaseInterface>(types.DatabaseInterface).to(MongoDatabase).inSingletonScope();
-  container.bind<FileReader>(types.FileReader).to(TSVFileReader);
-  container.bind<TSVFileWriter>(types.TSVFileWriter).to(TSVFileWriter);
-  container.bind<OfferGenerator>(types.OfferGenerator).to(OfferGenerator);
+// App
+container.bind<Application>(types.Application).to(Application).inSingletonScope();
+container.bind<LoggerInterface>(types.LoggerInterface).to(PinoLogger).inSingletonScope();
+container.bind<ConfigInterface>(types.ConfigInterface).to(Config).inSingletonScope();
+container.bind<DatabaseInterface>(types.DatabaseInterface).to(MongoDatabase).inSingletonScope();
 
-  container.bind<CLIApplication>(types.CLIApplication).to(CLIApplication).inSingletonScope();
-  container.bind<Command>(types.HelpCommand).to(HelpCommand);
-  container.bind<Command>(types.VersionCommand).to(VersionCommand);
-  container.bind<Command>(types.ImportCommand).to(ImportCommand);
-  container.bind<Command>(types.GenerateCommand).to(GenerateCommand);
+// Services
+container.bind<UserService>(COMPONENT.UserService).to(UserService).inSingletonScope();
+container.bind<OfferService>(COMPONENT.OfferService).to(OfferService).inSingletonScope();
 
-  // Models
-  const userModel = getModelForClass(UserEntity);
-  const offerModel = getModelForClass(OfferEntity);
+// Repositories
+container.bind<UserRepositoryInterface>(COMPONENT.UserRepositoryInterface).to(DefaultUserRepository).inSingletonScope();
+container.bind<OfferRepositoryInterface>(COMPONENT.OfferRepositoryInterface).to(DefaultOfferRepository).inSingletonScope();
 
-  container.bind(COMPONENT.UserModel).toConstantValue(userModel);
-  container.bind(COMPONENT.OfferModel).toConstantValue(offerModel);
+// Models
+container.bind(COMPONENT.UserModel).toConstantValue(getModelForClass(UserEntity));
+container.bind(COMPONENT.OfferModel).toConstantValue(getModelForClass(OfferEntity));
 
-  // Repositories
-  container
-    .bind<UserRepositoryInterface>(COMPONENT.UserRepositoryInterface)
-    .to(DefaultUserRepository)
-    .inSingletonScope();
+// CLI
+container.bind<CLIApplication>(types.CLIApplication).to(CLIApplication).inSingletonScope();
+container.bind<Command>(types.HelpCommand).to(HelpCommand);
+container.bind<Command>(types.VersionCommand).to(VersionCommand);
+container.bind<Command>(types.ImportCommand).to(ImportCommand);
+container.bind<Command>(types.GenerateCommand).to(GenerateCommand);
 
-  container
-    .bind<OfferRepositoryInterface>(COMPONENT.OfferRepositoryInterface)
-    .to(DefaultOfferRepository)
-    .inSingletonScope();
+// Utils
+container.bind<FileReader>(types.FileReader).to(TSVFileReader);
+container.bind<TSVFileWriter>(types.TSVFileWriter).to(TSVFileWriter).inSingletonScope();
+container.bind<OfferGenerator>(types.OfferGenerator).to(OfferGenerator).inSingletonScope();
 
-  // Services
-  container
-    .bind<UserService>(COMPONENT.UserService)
-    .to(UserService)
-    .inSingletonScope();
-
-  container
-    .bind<OfferService>(COMPONENT.OfferService)
-    .to(OfferService)
-    .inSingletonScope();
-
-  return container;
-}
+export { container };

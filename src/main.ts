@@ -1,12 +1,11 @@
 import 'reflect-metadata';
 import { Application } from './app/index.js';
-import { createApplicationContainer, types } from './shared/container/index.js';
+import { container, types } from './shared/container/index.js';
 import { LoggerInterface } from './shared/libs/logger/logger.interface.js';
 import { ConfigInterface } from './shared/config/config.interface.js';
 import { DatabaseInterface } from './shared/libs/database/index.js';
 
 async function bootstrap() {
-  const container = createApplicationContainer();
   const logger = container.get<LoggerInterface>(types.LoggerInterface);
   const config = container.get<ConfigInterface>(types.ConfigInterface);
   const databaseClient = container.get<DatabaseInterface>(types.DatabaseInterface);
