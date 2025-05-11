@@ -1,13 +1,14 @@
+import { injectable } from 'inversify';
 import { configSchema, ConfigSchema } from './schema.js';
 import path from 'node:path';
 import * as dotenv from 'dotenv';
+import { ConfigInterface } from './config.interface.js';
 
 function loadEnvFile() {
   try {
     const cwd = process.cwd();
     const envPath = path.join(cwd, '.env');
 
-    // Используем dotenv для загрузки файла .env
     const result = dotenv.config({ path: envPath });
 
     if (result.error) {
@@ -30,7 +31,6 @@ console.log('Environment variables:', {
   SALT: process.env.SALT
 });
 
-// Manually set the values in schema based on environment variables
 if (process.env.PORT) {
   configSchema.set('PORT', parseInt(process.env.PORT, 10));
 }
@@ -39,6 +39,20 @@ if (process.env.DB_HOST) {
 }
 if (process.env.SALT) {
   configSchema.set('SALT', process.env.SALT);
+}
+
+@injectable()
+export class Config implements ConfigInterface {
+  private readonly config: ConfigSchema;
+
+  constructor() {
+    configSchema.validate({ allowed: 'strict' });
+    this.config = configSchema.getProperties();
+  }
+
+  public get<T>(key: string): T {
+    return this.config[key as keyof ConfigSchema] as T;
+  }
 }
 
 export function getConfig(): ConfigSchema {

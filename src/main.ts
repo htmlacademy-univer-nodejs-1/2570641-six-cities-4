@@ -1,11 +1,23 @@
+import 'reflect-metadata';
 import { Application } from './app/index.js';
-import { logger } from './shared/libs/logger/index.js';
-import { config } from './shared/config/config.js';
+import { createApplicationContainer, types } from './shared/container/index.js';
+import { LoggerInterface } from './shared/libs/logger/logger.interface.js';
+import { ConfigInterface } from './shared/config/config.interface.js';
 
-logger.info('Application starting...');
-logger.info(`Application running on port ${config.PORT}`);
+async function bootstrap() {
+  const container = createApplicationContainer();
+  const logger = container.get<LoggerInterface>(types.LoggerInterface);
+  const config = container.get<ConfigInterface>(types.ConfigInterface);
+  const application = container.get<Application>(types.Application);
 
-const app = new Application();
-app.init();
+  logger.info('Application starting...');
+  logger.info(`Application running on port ${config.get<number>('PORT')}`);
 
-logger.info('Application successfully started');
+  application.init();
+
+  logger.info('Application successfully started');
+}
+
+bootstrap().catch((error) => {
+  console.error('Error during bootstrap:', error);
+});

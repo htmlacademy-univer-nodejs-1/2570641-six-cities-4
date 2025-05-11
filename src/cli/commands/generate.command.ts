@@ -1,56 +1,45 @@
+import { injectable, inject } from 'inversify';
 import { Command } from './command.interface.js';
-import { MockOfferGenerator } from '../../shared/offer-generator/index.js';
+import { LoggerInterface } from '../../shared/libs/logger/logger.interface.js';
 import { TSVFileWriter } from '../../shared/libs/file-writer/index.js';
-import chalk from 'chalk';
+import { OfferGenerator } from '../../shared/offer-generator/index.js';
+import { types } from '../../shared/container/types.js';
 
+@injectable()
 export class GenerateCommand implements Command {
-  private readonly DEFAULT_COUNT = 10;
+  constructor(
+    @inject(types.LoggerInterface) private readonly logger: LoggerInterface
+  ) {}
 
   public getName(): string {
     return '--generate';
   }
 
   public async execute(...parameters: string[]): Promise<void> {
-    const [count, filepath, url] = parameters;
-    const offersCount = count ? parseInt(count, 10) : this.DEFAULT_COUNT;
+    const [count, filepath] = parameters;
+    const offerCount = Number.parseInt(count, 10);
 
-    if (isNaN(offersCount)) {
-      console.error(chalk.red(`Count must be a number, received: ${count}`));
+    if (isNaN(offerCount)) {
+      this.logger.error('Count parameter must be a number');
       return;
     }
 
-    if (!filepath) {
-      console.error(chalk.red('Path to file is required'));
-      return;
-    }
-
-    if (!url) {
-      console.error(chalk.red('URL to fetch mock data is required'));
-      return;
-    }
+    this.logger.info(`Trying to generate ${count} offers to ${filepath}`);
 
     try {
-      const offerGenerator = new MockOfferGenerator(url);
-      console.log(chalk.blue(`Fetching data from ${url}...`));
-      await offerGenerator.loadMockData();
-      console.log(chalk.blue(`Generating ${offersCount} offers...`));
-      const offers = offerGenerator.generate(offersCount);
+      const generator = new OfferGenerator(offerCount);
+      const tsvFileWriter = new TSVFileWriter(filepath);
 
-      const fileWriter = new TSVFileWriter(filepath);
-      console.log(chalk.blue(`Writing data to ${filepath}...`));
-
-      for (const offer of offers) {
-        await fileWriter.write(offer);
+      for await (const offer of generator.generate()) {
+        await tsvFileWriter.write(offer);
       }
 
-      await fileWriter.end();
+      await tsvFileWriter.end();
 
-      console.log(chalk.green(`${offersCount} offers generated to ${filepath}`));
+      this.logger.info(`File ${filepath} was created!`);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(chalk.red(`Error generating data: ${error.message}`));
-      } else {
-        console.error(chalk.red('Unknown error occurred during generate operation'));
+        this.logger.error(`Error generating data: ${error.message}`);
       }
     }
   }
