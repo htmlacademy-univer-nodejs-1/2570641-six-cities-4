@@ -1,21 +1,35 @@
 import 'reflect-metadata';
 import { Application } from './app/index.js';
-import { createApplicationContainer, types } from './shared/container/index.js';
+import { container, types } from './shared/container/index.js';
 import { LoggerInterface } from './shared/libs/logger/logger.interface.js';
 import { ConfigInterface } from './shared/config/config.interface.js';
+import { DatabaseInterface } from './shared/libs/database/index.js';
 
 async function bootstrap() {
-  const container = createApplicationContainer();
   const logger = container.get<LoggerInterface>(types.LoggerInterface);
   const config = container.get<ConfigInterface>(types.ConfigInterface);
+  const databaseClient = container.get<DatabaseInterface>(types.DatabaseInterface);
   const application = container.get<Application>(types.Application);
 
-  logger.info('Application starting...');
-  logger.info(`Application running on port ${config.get<number>('PORT')}`);
+  try {
+    logger.info('Application starting...');
+    logger.info(`Application running on port ${config.get<number>('PORT')}`);
 
-  application.init();
+    await application.init();
 
-  logger.info('Application successfully started');
+    logger.info('Application successfully started');
+
+    process.on('SIGINT', async () => {
+      logger.info('Application termination signal received...');
+      await databaseClient.disconnect();
+      logger.info('Application terminated');
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      logger.error(`Application bootstrap failed: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 bootstrap().catch((error) => {
