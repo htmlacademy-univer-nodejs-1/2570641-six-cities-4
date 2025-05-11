@@ -25,11 +25,11 @@ export class VersionCommand implements Command {
     const jsonContent = readFileSync(resolve(this.filePath), 'utf-8');
     const importedContent: unknown = JSON.parse(jsonContent);
 
-    if (! isPackageJSONConfig(importedContent)) {
-      throw new Error(chalk.red('Failed to parse json content.'));
+    if (!isPackageJSONConfig(importedContent)) {
+      throw new Error('Failed to parse json content.');
     }
 
-    return chalk.green(importedContent.version);
+    return importedContent.version;
   }
 
   public getName(): string {
@@ -39,9 +39,9 @@ export class VersionCommand implements Command {
   public async execute(..._parameters: string[]): Promise<void> {
     try {
       const version = this.readVersion();
-      console.info(version);
+      console.info(chalk.green(version));
     } catch (error: unknown) {
-      console.error(chalk.red(`Failed to read version from ${this.filePath}`));
+      console.error(`Failed to read version from ${this.filePath}`);
 
       if (error instanceof Error) {
         console.error(chalk.red(error.message));
