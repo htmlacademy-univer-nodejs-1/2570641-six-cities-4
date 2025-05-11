@@ -2,6 +2,7 @@ export const types = {
   Application: Symbol.for('Application'),
   LoggerInterface: Symbol.for('LoggerInterface'),
   ConfigInterface: Symbol.for('ConfigInterface'),
+  DatabaseInterface: Symbol.for('DatabaseInterface'),
   FileReader: Symbol.for('FileReader'),
   TSVFileWriter: Symbol.for('TSVFileWriter'),
   OfferGenerator: Symbol.for('OfferGenerator'),

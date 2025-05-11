@@ -19,6 +19,10 @@ export type ConfigSchema = {
   PORT: number;
   DB_HOST: string;
   SALT: string;
+  DB_USER: string;
+  DB_PASSWORD: string;
+  DB_NAME: string;
+  DB_PORT: string;
 }
 
 export const configSchema = convict<ConfigSchema>({
@@ -38,6 +42,30 @@ export const configSchema = convict<ConfigSchema>({
     },
     env: 'DB_HOST',
     default: null
+  },
+  DB_USER: {
+    doc: 'Username to connect to MongoDB',
+    format: String,
+    env: 'DB_USER',
+    default: ''
+  },
+  DB_PASSWORD: {
+    doc: 'Password to connect to MongoDB',
+    format: String,
+    env: 'DB_PASSWORD',
+    default: ''
+  },
+  DB_NAME: {
+    doc: 'Database name',
+    format: String,
+    env: 'DB_NAME',
+    default: 'six-cities'
+  },
+  DB_PORT: {
+    doc: 'Database port',
+    format: String,
+    env: 'DB_PORT',
+    default: '27017'
   },
   SALT: {
     doc: 'Salt for password hash',
