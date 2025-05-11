@@ -1,0 +1,594 @@
+openapi: 3.0.3
+info:
+  title: Six Cities API
+  description: API for Six Cities application
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+    
+tags:
+  - name: offers
+    description: Operations related to property offers
+  - name: users
+    description: Operations related to users
+  - name: comments
+    description: Operations related to comments
+  - name: favorites
+    description: Operations related to favorite offers
+
+paths:
+  /offers:
+    get:
+      tags:
+        - offers
+      summary: Get all offers
+      description: Returns a list of all property offers
+      responses:
+        '200':
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'
+    
+    post:
+      tags:
+        - offers
+      summary: Create a new offer
+      description: Creates a new property offer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferCreate'
+      responses:
+        '201':
+          description: Offer created successfully
+
+  /offers/{offerId}:
+    get:
+      tags:
+        - offers
+      summary: Get offer by ID
+      description: Returns a specific offer by its ID
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Offer found
+    
+    patch:
+      tags:
+        - offers
+      summary: Update an offer
+      description: Updates an existing offer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferUpdate'
+      responses:
+        '200':
+          description: Offer updated successfully
+    
+    delete:
+      tags:
+        - offers
+      summary: Delete an offer
+      description: Deletes an existing offer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Offer deleted successfully
+
+  /offers/premium/{city}:
+    get:
+      tags:
+        - offers
+      summary: Get premium offers for a city
+      description: Returns premium offers for a specific city
+      parameters:
+        - name: city
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of premium offers
+
+  /offers/{offerId}/comments:
+    get:
+      tags:
+        - comments
+      summary: Get comments for an offer
+      description: Returns all comments for a specific offer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of comments
+    
+    post:
+      tags:
+        - comments
+      summary: Add a comment to an offer
+      description: Creates a new comment for a specific offer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '201':
+          description: Comment created successfully
+
+  /users/register:
+    post:
+      tags:
+        - users
+      summary: Register a new user
+      description: Creates a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: User registered successfully
+
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Login user
+      description: Authenticates a user and returns a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Authentication successful
+    
+    get:
+      tags:
+        - users
+      summary: Get current user
+      description: Returns the current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+
+  /users/{userId}/avatar:
+    post:
+      tags:
+        - users
+      summary: Upload user avatar
+      description: Uploads a new avatar for the user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar uploaded successfully
+
+  /favorites:
+    get:
+      tags:
+        - favorites
+      summary: Get favorite offers
+      description: Returns all favorite offers for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of favorite offers
+
+  /favorites/{offerId}/{status}:
+    post:
+      tags:
+        - favorites
+      summary: Add or remove offer from favorites
+      description: Adds or removes an offer from the user's favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: integer
+            enum: [0, 1]
+      responses:
+        '200':
+          description: Favorite status updated successfully
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    Location:
+      type: object
+      properties:
+        latitude:
+          type: number
+          example: 48.85661
+        longitude:
+          type: number
+          example: 2.35222
+      required:
+        - latitude
+        - longitude
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        name:
+          type: string
+          example: "Alice Johnson"
+        email:
+          type: string
+          example: "alice@example.com"
+        avatar:
+          type: string
+          example: "default-avatar.png"
+        type:
+          type: string
+          enum:
+            - Regular
+            - Pro
+      required:
+        - id
+        - name
+        - email
+        - type
+    
+    UserRegister:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Alice Johnson"
+        email:
+          type: string
+          example: "alice@example.com"
+        password:
+          type: string
+          example: "password123"
+        type:
+          type: string
+          enum:
+            - Regular
+            - Pro
+      required:
+        - name
+        - email
+        - password
+    
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "alice@example.com"
+        password:
+          type: string
+          example: "password123"
+      required:
+        - email
+        - password
+    
+    Offer:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+        title:
+          type: string
+          example: "Beautiful apartment in the heart of Paris"
+        description:
+          type: string
+          example: "A cozy and modern apartment with a stunning view of the Eiffel Tower"
+        date:
+          type: string
+          format: date-time
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+        previewImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        isPremium:
+          type: boolean
+        isFavorite:
+          type: boolean
+        rating:
+          type: number
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+        roomCount:
+          type: integer
+        guestCount:
+          type: integer
+        price:
+          type: integer
+        amenities:
+          type: array
+          items:
+            type: string
+            enum:
+              - Breakfast
+              - Air conditioning
+              - Laptop friendly workspace
+              - Baby seat
+              - Washer
+              - Towels
+              - Fridge
+        userId:
+          type: string
+        commentCount:
+          type: integer
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+        - id
+        - title
+        - description
+        - date
+        - city
+        - previewImage
+        - images
+        - isPremium
+        - rating
+        - type
+        - roomCount
+        - guestCount
+        - price
+        - amenities
+        - userId
+        - location
+    
+    OfferCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+        previewImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        isPremium:
+          type: boolean
+        rating:
+          type: number
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+        roomCount:
+          type: integer
+        guestCount:
+          type: integer
+        price:
+          type: integer
+        amenities:
+          type: array
+          items:
+            type: string
+            enum:
+              - Breakfast
+              - Air conditioning
+              - Laptop friendly workspace
+              - Baby seat
+              - Washer
+              - Towels
+              - Fridge
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+        - title
+        - description
+        - city
+        - previewImage
+        - images
+        - isPremium
+        - rating
+        - type
+        - roomCount
+        - guestCount
+        - price
+        - amenities
+        - location
+    
+    OfferUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+        previewImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        isPremium:
+          type: boolean
+        rating:
+          type: number
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+        roomCount:
+          type: integer
+        guestCount:
+          type: integer
+        price:
+          type: integer
+        amenities:
+          type: array
+          items:
+            type: string
+            enum:
+              - Breakfast
+              - Air conditioning
+              - Laptop friendly workspace
+              - Baby seat
+              - Washer
+              - Towels
+              - Fridge
+        location:
+          $ref: '#/components/schemas/Location'
+    
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        publishDate:
+          type: string
+          format: date-time
+        rating:
+          type: number
+        author:
+          $ref: '#/components/schemas/User'
+        offerId:
+          type: string
+      required:
+        - id
+        - text
+        - publishDate
+        - rating
+        - author
+        - offerId
+    
+    CommentCreate:
+      type: object
+      properties:
+        text:
+          type: string
+        rating:
+          type: number
+      required:
+        - text
+        - rating 
