@@ -18,6 +18,14 @@ import { VersionCommand } from '../../cli/commands/version.command.js';
 import { ImportCommand } from '../../cli/commands/import.command.js';
 import { GenerateCommand } from '../../cli/commands/generate.command.js';
 import { OfferGenerator } from '../offer-generator/offer-generator.js';
+import { UserEntity, OfferEntity } from '../modules/index.js';
+import { COMPONENT } from '../types/component.types.js';
+import { getModelForClass } from '@typegoose/typegoose';
+import {
+  DefaultUserRepository, UserRepositoryInterface,
+  DefaultOfferRepository, OfferRepositoryInterface,
+  UserService, OfferService
+} from '../modules/index.js';
 
 export function createApplicationContainer() {
   const container = new Container();
@@ -35,6 +43,35 @@ export function createApplicationContainer() {
   container.bind<Command>(types.VersionCommand).to(VersionCommand);
   container.bind<Command>(types.ImportCommand).to(ImportCommand);
   container.bind<Command>(types.GenerateCommand).to(GenerateCommand);
+
+  // Models
+  const userModel = getModelForClass(UserEntity);
+  const offerModel = getModelForClass(OfferEntity);
+
+  container.bind(COMPONENT.UserModel).toConstantValue(userModel);
+  container.bind(COMPONENT.OfferModel).toConstantValue(offerModel);
+
+  // Repositories
+  container
+    .bind<UserRepositoryInterface>(COMPONENT.UserRepositoryInterface)
+    .to(DefaultUserRepository)
+    .inSingletonScope();
+
+  container
+    .bind<OfferRepositoryInterface>(COMPONENT.OfferRepositoryInterface)
+    .to(DefaultOfferRepository)
+    .inSingletonScope();
+
+  // Services
+  container
+    .bind<UserService>(COMPONENT.UserService)
+    .to(UserService)
+    .inSingletonScope();
+
+  container
+    .bind<OfferService>(COMPONENT.OfferService)
+    .to(OfferService)
+    .inSingletonScope();
 
   return container;
 }
