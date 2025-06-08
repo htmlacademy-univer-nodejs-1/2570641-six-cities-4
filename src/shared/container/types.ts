@@ -12,4 +12,25 @@ export const types = {
   VersionCommand: Symbol.for('VersionCommand'),
   ImportCommand: Symbol.for('ImportCommand'),
   GenerateCommand: Symbol.for('GenerateCommand'),
+
+  UserController: Symbol.for('UserController'),
+  OfferController: Symbol.for('OfferController'),
+  FavoriteController: Symbol.for('FavoriteController'),
+
+  UserServiceInterface: Symbol.for('UserServiceInterface'),
+  UserRepositoryInterface: Symbol.for('UserRepositoryInterface'),
+
+  OfferServiceInterface: Symbol.for('OfferServiceInterface'),
+  OfferRepositoryInterface: Symbol.for('OfferRepositoryInterface'),
+
+  FavoriteServiceInterface: Symbol.for('FavoriteServiceInterface'),
+  FavoriteRepositoryInterface: Symbol.for('FavoriteRepositoryInterface'),
+
+  UserModel: Symbol.for('UserModel'),
+  OfferModel: Symbol.for('OfferModel'),
+  FavoriteModel: Symbol.for('FavoriteModel'),
+
+  AppExceptionFilter: Symbol.for('AppExceptionFilter'),
+  HttpExceptionFilter: Symbol.for('HttpExceptionFilter'),
+  ValidationExceptionFilter: Symbol.for('ValidationExceptionFilter'),
 } as const;

@@ -20,12 +20,22 @@ import { GenerateCommand } from '../../cli/commands/generate.command.js';
 import { OfferGenerator } from '../offer-generator/offer-generator.js';
 import { UserEntity, OfferEntity } from '../modules/index.js';
 import { UserService } from '../modules/user/user.service.js';
+import { UserServiceInterface } from '../modules/user/user-service.interface.js';
 import { OfferService } from '../modules/offer/offer.service.js';
+import { OfferServiceInterface } from '../modules/offer/offer-service.interface.js';
 import { UserRepositoryInterface } from '../modules/user/user-repository.interface.js';
 import { OfferRepositoryInterface } from '../modules/offer/offer-repository.interface.js';
 import { DefaultUserRepository } from '../modules/user/default-user.repository.js';
 import { DefaultOfferRepository } from '../modules/offer/default-offer.repository.js';
-import { COMPONENT } from '../types/component.types.js';
+import { UserController } from '../modules/user/user.controller.js';
+import { OfferController } from '../modules/offer/offer.controller.js';
+import { FavoriteController } from '../modules/favorite/favorite.controller.js';
+import { FavoriteServiceInterface } from '../modules/favorite/favorite-service.interface.js';
+import { FavoriteService } from '../modules/favorite/favorite.service.js';
+import { FavoriteRepositoryInterface } from '../modules/favorite/favorite-repository.interface.js';
+import { DefaultFavoriteRepository } from '../modules/favorite/default-favorite.repository.js';
+import { FavoriteEntity } from '../modules/favorite/favorite.entity.js';
+import { AppExceptionFilter, HttpExceptionFilter, ValidationExceptionFilter, ControllerInterface, ExceptionFilter } from '../libs/rest/index.js';
 import { getModelForClass } from '@typegoose/typegoose';
 
 const container = new Container();
@@ -37,16 +47,29 @@ container.bind<ConfigInterface>(types.ConfigInterface).to(Config).inSingletonSco
 container.bind<DatabaseInterface>(types.DatabaseInterface).to(MongoDatabase).inSingletonScope();
 
 // Services
-container.bind<UserService>(COMPONENT.UserService).to(UserService).inSingletonScope();
-container.bind<OfferService>(COMPONENT.OfferService).to(OfferService).inSingletonScope();
+container.bind<UserServiceInterface>(types.UserServiceInterface).to(UserService).inSingletonScope();
+container.bind<OfferServiceInterface>(types.OfferServiceInterface).to(OfferService).inSingletonScope();
+container.bind<FavoriteServiceInterface>(types.FavoriteServiceInterface).to(FavoriteService).inSingletonScope();
 
 // Repositories
-container.bind<UserRepositoryInterface>(COMPONENT.UserRepositoryInterface).to(DefaultUserRepository).inSingletonScope();
-container.bind<OfferRepositoryInterface>(COMPONENT.OfferRepositoryInterface).to(DefaultOfferRepository).inSingletonScope();
+container.bind<UserRepositoryInterface>(types.UserRepositoryInterface).to(DefaultUserRepository).inSingletonScope();
+container.bind<OfferRepositoryInterface>(types.OfferRepositoryInterface).to(DefaultOfferRepository).inSingletonScope();
+container.bind<FavoriteRepositoryInterface>(types.FavoriteRepositoryInterface).to(DefaultFavoriteRepository).inSingletonScope();
+
+// Controllers
+container.bind<ControllerInterface>(types.UserController).to(UserController).inSingletonScope();
+container.bind<ControllerInterface>(types.OfferController).to(OfferController).inSingletonScope();
+container.bind<ControllerInterface>(types.FavoriteController).to(FavoriteController).inSingletonScope();
 
 // Models
-container.bind(COMPONENT.UserModel).toConstantValue(getModelForClass(UserEntity));
-container.bind(COMPONENT.OfferModel).toConstantValue(getModelForClass(OfferEntity));
+container.bind(types.UserModel).toConstantValue(getModelForClass(UserEntity));
+container.bind(types.OfferModel).toConstantValue(getModelForClass(OfferEntity));
+container.bind(types.FavoriteModel).toConstantValue(getModelForClass(FavoriteEntity));
+
+// Exception Filters
+container.bind<ExceptionFilter>(types.AppExceptionFilter).to(AppExceptionFilter).inSingletonScope();
+container.bind<ExceptionFilter>(types.HttpExceptionFilter).to(HttpExceptionFilter).inSingletonScope();
+container.bind<ExceptionFilter>(types.ValidationExceptionFilter).to(ValidationExceptionFilter).inSingletonScope();
 
 // CLI
 container.bind<CLIApplication>(types.CLIApplication).to(CLIApplication).inSingletonScope();

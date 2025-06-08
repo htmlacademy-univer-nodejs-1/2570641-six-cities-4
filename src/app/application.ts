@@ -1,30 +1,77 @@
 import { injectable, inject } from 'inversify';
+import express, { Express } from 'express';
 import { LoggerInterface } from '../shared/libs/logger/logger.interface.js';
 import { ConfigInterface } from '../shared/config/config.interface.js';
 import { DatabaseInterface } from '../shared/libs/database/database.interface.js';
 import { types } from '../shared/container/types.js';
+import { ControllerInterface, ExceptionFilter } from '../shared/libs/rest/index.js';
 
 @injectable()
 export class Application {
+  private readonly server: Express;
+
   constructor(
     @inject(types.LoggerInterface) private readonly logger: LoggerInterface,
     @inject(types.ConfigInterface) private readonly config: ConfigInterface,
-    @inject(types.DatabaseInterface) private readonly databaseClient: DatabaseInterface
-  ) {}
+    @inject(types.DatabaseInterface) private readonly databaseClient: DatabaseInterface,
+    @inject(types.UserController) private readonly userController: ControllerInterface,
+    @inject(types.OfferController) private readonly offerController: ControllerInterface,
+    @inject(types.FavoriteController) private readonly favoriteController: ControllerInterface,
+    @inject(types.AppExceptionFilter) private readonly appExceptionFilter: ExceptionFilter,
+    @inject(types.HttpExceptionFilter) private readonly httpExceptionFilter: ExceptionFilter,
+    @inject(types.ValidationExceptionFilter) private readonly validationExceptionFilter: ExceptionFilter,
+  ) {
+    this.server = express();
+  }
+
+  private async initDb(): Promise<void> {
+    const mongoUri = this.config.getMongoURI();
+    await this.databaseClient.connect(mongoUri);
+  }
+
+  private async initServer(): Promise<void> {
+    const port = this.config.get<number>('PORT');
+    this.server.listen(port);
+    this.logger.info(`🚀 Server started on http://localhost:${port}`);
+  }
+
+  private async initControllers(): Promise<void> {
+    this.server.use('/users', this.userController.router);
+    this.server.use('/offers', this.offerController.router);
+    this.server.use('/favorites', this.favoriteController.router);
+  }
+
+  private async initMiddleware(): Promise<void> {
+    this.server.use(express.json());
+  }
+
+  private async initExceptionFilters(): Promise<void> {
+    this.server.use(this.validationExceptionFilter.catch.bind(this.validationExceptionFilter));
+    this.server.use(this.httpExceptionFilter.catch.bind(this.httpExceptionFilter));
+    this.server.use(this.appExceptionFilter.catch.bind(this.appExceptionFilter));
+  }
 
   public async init(): Promise<void> {
     this.logger.info('Application initialization...');
 
-    const mongoUri = this.config.getMongoURI();
+    this.logger.info('Init database…');
+    await this.initDb();
+    this.logger.info('Init database completed');
 
-    try {
-      await this.databaseClient.connect(mongoUri);
-      this.logger.info('Application initialized');
-    } catch (error) {
-      if (error instanceof Error) {
-        this.logger.error(`Application initialization failed: ${error.message}`);
-      }
-      throw error;
-    }
+    this.logger.info('Init app-level middleware');
+    await this.initMiddleware();
+    this.logger.info('App-level middleware initialization completed');
+
+    this.logger.info('Init controllers');
+    await this.initControllers();
+    this.logger.info('Controller initialization completed');
+
+    this.logger.info('Init exception filters');
+    await this.initExceptionFilters();
+    this.logger.info('Exception filters initialization completed');
+
+    this.logger.info('Try to init server…');
+    await this.initServer();
+    this.logger.info('Application initialized');
   }
 }
