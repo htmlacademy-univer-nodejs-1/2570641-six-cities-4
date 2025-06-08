@@ -17,6 +17,7 @@ export class Application {
     @inject(types.UserController) private readonly userController: ControllerInterface,
     @inject(types.OfferController) private readonly offerController: ControllerInterface,
     @inject(types.FavoriteController) private readonly favoriteController: ControllerInterface,
+    @inject(types.CommentController) private readonly commentController: ControllerInterface,
     @inject(types.AppExceptionFilter) private readonly appExceptionFilter: ExceptionFilter,
     @inject(types.HttpExceptionFilter) private readonly httpExceptionFilter: ExceptionFilter,
     @inject(types.ValidationExceptionFilter) private readonly validationExceptionFilter: ExceptionFilter,
@@ -39,6 +40,7 @@ export class Application {
     this.server.use('/users', this.userController.router);
     this.server.use('/offers', this.offerController.router);
     this.server.use('/favorites', this.favoriteController.router);
+    this.server.use('/comments', this.commentController.router);
   }
 
   private async initMiddleware(): Promise<void> {

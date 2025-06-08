@@ -22,6 +22,8 @@ export class DefaultCommentRepository implements CommentRepositoryInterface {
     return this.commentModel
       .find({ offerId })
       .populate('userId')
+      .sort({ publishDate: -1 })
+      .limit(50)
       .exec();
   }
 

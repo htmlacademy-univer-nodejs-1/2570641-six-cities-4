@@ -16,6 +16,7 @@ export const types = {
   UserController: Symbol.for('UserController'),
   OfferController: Symbol.for('OfferController'),
   FavoriteController: Symbol.for('FavoriteController'),
+  CommentController: Symbol.for('CommentController'),
 
   UserServiceInterface: Symbol.for('UserServiceInterface'),
   UserRepositoryInterface: Symbol.for('UserRepositoryInterface'),
@@ -26,9 +27,14 @@ export const types = {
   FavoriteServiceInterface: Symbol.for('FavoriteServiceInterface'),
   FavoriteRepositoryInterface: Symbol.for('FavoriteRepositoryInterface'),
 
+  CommentService: Symbol.for('CommentService'),
+  CommentServiceInterface: Symbol.for('CommentServiceInterface'),
+  CommentRepositoryInterface: Symbol.for('CommentRepositoryInterface'),
+
   UserModel: Symbol.for('UserModel'),
   OfferModel: Symbol.for('OfferModel'),
   FavoriteModel: Symbol.for('FavoriteModel'),
+  CommentModel: Symbol.for('CommentModel'),
 
   AppExceptionFilter: Symbol.for('AppExceptionFilter'),
   HttpExceptionFilter: Symbol.for('HttpExceptionFilter'),

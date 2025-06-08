@@ -10,5 +10,6 @@ export * from './offer.service.js';
 export * from './offer.controller.js';
 export * from './dto/create-offer.dto.js';
 export * from './dto/update-offer.dto.js';
+export * from './dto/location.dto.js';
 export * from './rdo/offer.rdo.js';
 export * from './rdo/offer-preview.rdo.js';
