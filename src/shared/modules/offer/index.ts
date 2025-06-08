@@ -6,3 +6,5 @@ export * from './location.type.js';
 export * from './offer-repository.interface.js';
 export * from './default-offer.repository.js';
 export * from './offer.service.js';
+export * from './dto/create-offer.dto.js';
+export * from './dto/update-offer.dto.js';
