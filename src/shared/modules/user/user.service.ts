@@ -7,13 +7,14 @@ import { types } from '../../container/types.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
-import * as crypto from 'node:crypto';
+import { ConfigInterface } from '../../config/config.interface.js';
 
 @injectable()
 export class UserService implements UserServiceInterface {
   constructor(
     @inject(types.UserRepositoryInterface) private readonly userRepository: UserRepositoryInterface,
-    @inject(types.LoggerInterface) private readonly logger: LoggerInterface
+    @inject(types.LoggerInterface) private readonly logger: LoggerInterface,
+    @inject(types.ConfigInterface) private readonly config: ConfigInterface
   ) {}
 
   public async findById(userId: string): Promise<DocumentType<UserEntity> | null> {
@@ -25,10 +26,11 @@ export class UserService implements UserServiceInterface {
   }
 
   public async create(dto: CreateUserDto, password: string): Promise<DocumentType<UserEntity>> {
-    const user = {
-      ...dto,
-      password: await this.hashPassword(password)
-    };
+    const user = new UserEntity();
+    user.name = dto.name;
+    user.email = dto.email;
+    user.type = dto.type;
+    user.setPassword(password, this.config.get<string>('SALT'));
 
     this.logger.info(`Creating new user: ${user.email}`);
     return this.userRepository.create(user);
@@ -41,7 +43,7 @@ export class UserService implements UserServiceInterface {
       return null;
     }
 
-    if (await this.comparePassword(password, user.password)) {
+    if (user.verifyPassword(password, this.config.get<string>('SALT'))) {
       return user;
     }
 
@@ -63,41 +65,5 @@ export class UserService implements UserServiceInterface {
     return this.userRepository.updateAvatar(userId, avatarPath);
   }
 
-  private async hashPassword(password: string): Promise<string> {
-    const salt = crypto.randomBytes(16).toString('hex');
-    return new Promise((resolve, reject) => {
-      crypto.pbkdf2(
-        password,
-        salt,
-        1000,
-        64,
-        'sha512',
-        (err, derivedKey) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(`${salt}:${derivedKey.toString('hex')}`);
-        }
-      );
-    });
-  }
 
-  private async comparePassword(password: string, hash: string): Promise<boolean> {
-    const [salt, storedHash] = hash.split(':');
-    return new Promise((resolve, reject) => {
-      crypto.pbkdf2(
-        password,
-        salt,
-        1000,
-        64,
-        'sha512',
-        (err, derivedKey) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(derivedKey.toString('hex') === storedHash);
-        }
-      );
-    });
-  }
 }

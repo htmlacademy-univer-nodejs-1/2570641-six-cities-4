@@ -4,7 +4,7 @@ import { LoggerInterface } from '../shared/libs/logger/logger.interface.js';
 import { ConfigInterface } from '../shared/config/config.interface.js';
 import { DatabaseInterface } from '../shared/libs/database/database.interface.js';
 import { types } from '../shared/container/types.js';
-import { ControllerInterface, ExceptionFilter } from '../shared/libs/rest/index.js';
+import { ControllerInterface, ExceptionFilter, ParseTokenMiddleware } from '../shared/libs/rest/index.js';
 
 @injectable()
 export class Application {
@@ -21,6 +21,7 @@ export class Application {
     @inject(types.AppExceptionFilter) private readonly appExceptionFilter: ExceptionFilter,
     @inject(types.HttpExceptionFilter) private readonly httpExceptionFilter: ExceptionFilter,
     @inject(types.ValidationExceptionFilter) private readonly validationExceptionFilter: ExceptionFilter,
+    @inject(types.AuthExceptionFilter) private readonly authExceptionFilter: ExceptionFilter,
   ) {
     this.server = express();
   }
@@ -44,13 +45,17 @@ export class Application {
   }
 
   private async initMiddleware(): Promise<void> {
+    const authenticateMiddleware = new ParseTokenMiddleware(this.config.get<string>('JWT_SECRET'));
+
     this.server.use(express.json());
+    this.server.use(authenticateMiddleware.execute.bind(authenticateMiddleware));
 
     const uploadDirectory = this.config.get<string>('UPLOAD_DIRECTORY');
     this.server.use('/static', express.static(uploadDirectory));
   }
 
   private async initExceptionFilters(): Promise<void> {
+    this.server.use(this.authExceptionFilter.catch.bind(this.authExceptionFilter));
     this.server.use(this.validationExceptionFilter.catch.bind(this.validationExceptionFilter));
     this.server.use(this.httpExceptionFilter.catch.bind(this.httpExceptionFilter));
     this.server.use(this.appExceptionFilter.catch.bind(this.appExceptionFilter));

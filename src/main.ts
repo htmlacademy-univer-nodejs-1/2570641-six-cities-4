@@ -1,4 +1,10 @@
 import 'reflect-metadata';
+import { webcrypto } from 'node:crypto';
+
+if (!(globalThis as any).crypto) {
+  (globalThis as any).crypto = webcrypto;
+}
+
 import { Application } from './app/index.js';
 import { container, types } from './shared/container/index.js';
 import { LoggerInterface } from './shared/libs/logger/logger.interface.js';

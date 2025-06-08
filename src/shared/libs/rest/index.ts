@@ -9,5 +9,5 @@ export { ValidationExceptionFilter } from './exception-filter/validation.excepti
 export { createErrorObject } from './helpers/common.js';
 export { HttpError } from './errors/http-error.js';
 export { ValidationError } from './errors/validation-error.js';
-export { MiddlewareInterface, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from './middleware/index.js';
+export { MiddlewareInterface, ValidateObjectIdMiddleware, ValidateDtoMiddleware, ParseTokenMiddleware, PrivateRouteMiddleware } from './middleware/index.js';
 export { ApplicationError } from './types/application-error.enum.js';

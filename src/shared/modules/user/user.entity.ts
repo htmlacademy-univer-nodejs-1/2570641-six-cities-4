@@ -1,6 +1,7 @@
 import { prop, modelOptions } from '@typegoose/typegoose';
 import { BaseEntity } from '../base/base-entity.js';
 import { UserType } from './user-type.enum.js';
+import { createSHA256 } from '../../helpers/hash.js';
 
 @modelOptions({
   schemaOptions: {
@@ -18,8 +19,21 @@ export class UserEntity extends BaseEntity {
   public avatar?: string;
 
   @prop({ required: true })
-  public password!: string;
+  private password!: string;
 
   @prop({ required: true, enum: UserType, type: () => String, default: UserType.Regular })
   public type!: UserType;
+
+  public setPassword(password: string, salt: string) {
+    this.password = createSHA256(password, salt);
+  }
+
+  public getPassword() {
+    return this.password;
+  }
+
+  public verifyPassword(password: string, salt: string): boolean {
+    const hashPassword = createSHA256(password, salt);
+    return hashPassword === this.password;
+  }
 }

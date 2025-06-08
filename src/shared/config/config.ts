@@ -32,7 +32,8 @@ console.log('Environment variables:', {
   DB_PASSWORD: process.env.DB_PASSWORD ? '[PRESENT]' : '[NOT_SET]',
   DB_NAME: process.env.DB_NAME,
   DB_PORT: process.env.DB_PORT,
-  SALT: process.env.SALT
+  SALT: process.env.SALT,
+  JWT_SECRET: process.env.JWT_SECRET ? '[PRESENT]' : '[NOT_SET]'
 });
 
 if (process.env.PORT) {
@@ -55,6 +56,9 @@ if (process.env.DB_PORT) {
 }
 if (process.env.SALT) {
   configSchema.set('SALT', process.env.SALT);
+}
+if (process.env.JWT_SECRET) {
+  configSchema.set('JWT_SECRET', process.env.JWT_SECRET);
 }
 
 @injectable()
@@ -91,7 +95,7 @@ export function getConfig(): ConfigSchema {
   const config = configSchema.getProperties();
 
   const missingVars = Object.entries(config)
-    .filter(([key, value]) => value === null && ['PORT', 'DB_HOST', 'SALT'].includes(key))
+    .filter(([key, value]) => value === null && ['PORT', 'DB_HOST', 'SALT', 'JWT_SECRET'].includes(key))
     .map(([key]) => key);
 
   if (missingVars.length > 0) {

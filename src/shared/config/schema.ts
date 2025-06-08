@@ -24,6 +24,7 @@ export type ConfigSchema = {
   DB_NAME: string;
   DB_PORT: string;
   UPLOAD_DIRECTORY: string;
+  JWT_SECRET: string;
 }
 
 export const configSchema = convict<ConfigSchema>({
@@ -83,5 +84,15 @@ export const configSchema = convict<ConfigSchema>({
     format: String,
     env: 'UPLOAD_DIRECTORY',
     default: 'uploads'
+  },
+  JWT_SECRET: {
+    doc: 'Secret key for JWT tokens',
+    format: (val) => {
+      if (val === null || val === undefined || val === '') {
+        throw new Error('JWT_SECRET is required');
+      }
+    },
+    env: 'JWT_SECRET',
+    default: null
   }
 });

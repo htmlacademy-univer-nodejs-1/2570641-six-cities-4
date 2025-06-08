@@ -1,7 +1,8 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { BaseController, HttpMethod, HttpError, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from '../../libs/rest/index.js';
+import { Ref } from '@typegoose/typegoose';
+import { BaseController, HttpMethod, HttpError, ValidateObjectIdMiddleware, ValidateDtoMiddleware, PrivateRouteMiddleware } from '../../libs/rest/index.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { types } from '../../container/types.js';
 import { OfferServiceInterface } from './offer-service.interface.js';
@@ -11,6 +12,7 @@ import { OfferRdo } from './rdo/offer.rdo.js';
 import { OfferPreviewRdo } from './rdo/offer-preview.rdo.js';
 import { plainToInstance } from 'class-transformer';
 import { City } from './city.enum.js';
+import { UserEntity } from '../user/user.entity.js';
 import { DocumentExistsMiddleware } from '../../libs/middleware/index.js';
 
 type ParamsOfferId = {
@@ -40,7 +42,10 @@ export class OfferController extends BaseController {
       path: '/',
       method: HttpMethod.Post,
       handler: this.create,
-      middlewares: [new ValidateDtoMiddleware(CreateOfferDto)]
+      middlewares: [
+        new PrivateRouteMiddleware(),
+        new ValidateDtoMiddleware(CreateOfferDto)
+      ]
     });
     this.addRoute({
       path: '/:offerId',
@@ -56,6 +61,7 @@ export class OfferController extends BaseController {
       method: HttpMethod.Patch,
       handler: this.update,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateObjectIdMiddleware('offerId'),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
         new ValidateDtoMiddleware(UpdateOfferDto)
@@ -66,6 +72,7 @@ export class OfferController extends BaseController {
       method: HttpMethod.Delete,
       handler: this.delete,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateObjectIdMiddleware('offerId'),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
       ]
@@ -75,33 +82,56 @@ export class OfferController extends BaseController {
 
   public async index(req: Request<unknown, unknown, unknown, QueryLimit>, res: Response): Promise<void> {
     const limit = req.query.limit || 60;
-    const offers = await this.offerService.find(Number(limit));
+    const userId = req.tokenPayload?.id;
+    const offers = await this.offerService.find(Number(limit), userId);
     this.ok(res, plainToInstance(OfferPreviewRdo, offers, { excludeExtraneousValues: true }));
   }
 
   public async create(req: Request<Record<string, unknown>, Record<string, unknown>, CreateOfferDto>, res: Response): Promise<void> {
-    const result = await this.offerService.create(req.body);
+    const { id: userId } = req.tokenPayload!;
+    const result = await this.offerService.create({ ...req.body, userId: userId as unknown as Ref<UserEntity> });
     this.created(res, plainToInstance(OfferRdo, result, { excludeExtraneousValues: true }));
   }
 
   public async show(req: Request<ParamsOfferId>, res: Response): Promise<void> {
     const { offerId } = req.params;
-    const offer = await this.offerService.findById(offerId);
+    const userId = req.tokenPayload?.id;
+    const offer = await this.offerService.findById(offerId, userId);
 
     this.ok(res, plainToInstance(OfferRdo, offer, { excludeExtraneousValues: true }));
   }
 
   public async update(req: Request<ParamsOfferId, Record<string, unknown>, UpdateOfferDto>, res: Response): Promise<void> {
     const { offerId } = req.params;
-    const updatedOffer = await this.offerService.updateById(offerId, req.body);
+    const { id: userId } = req.tokenPayload!;
 
+    const isOwner = await this.offerService.checkOwnership(offerId, userId);
+    if (!isOwner) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'Access denied. You can only edit your own offers.',
+        'OfferController'
+      );
+    }
+
+    const updatedOffer = await this.offerService.updateById(offerId, req.body);
     this.ok(res, plainToInstance(OfferRdo, updatedOffer, { excludeExtraneousValues: true }));
   }
 
   public async delete(req: Request<ParamsOfferId>, res: Response): Promise<void> {
     const { offerId } = req.params;
-    await this.offerService.deleteById(offerId);
+    const { id: userId } = req.tokenPayload!;
 
+    const isOwner = await this.offerService.checkOwnership(offerId, userId);
+    if (!isOwner) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'Access denied. You can only delete your own offers.',
+        'OfferController'
+      );
+    }
+
+    await this.offerService.deleteById(offerId);
     this.noContent(res, null);
   }
 
@@ -116,7 +146,8 @@ export class OfferController extends BaseController {
       );
     }
 
-    const offers = await this.offerService.findPremiumByCity(city as City);
+    const userId = req.tokenPayload?.id;
+    const offers = await this.offerService.findPremiumByCity(city as City, userId);
     this.ok(res, plainToInstance(OfferPreviewRdo, offers, { excludeExtraneousValues: true }));
   }
 }

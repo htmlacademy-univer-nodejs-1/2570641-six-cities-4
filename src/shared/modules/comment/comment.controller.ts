@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { Ref } from '@typegoose/typegoose';
-import { BaseController, HttpMethod, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from '../../libs/rest/index.js';
+import { BaseController, HttpMethod, ValidateObjectIdMiddleware, ValidateDtoMiddleware, PrivateRouteMiddleware } from '../../libs/rest/index.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { types } from '../../container/types.js';
 import { CommentServiceInterface } from './comment-service.interface.js';
@@ -10,6 +10,7 @@ import { CreateCommentDto } from './dto/create-comment.dto.js';
 import { CommentRdo } from './rdo/comment.rdo.js';
 import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import { OfferEntity } from '../offer/offer.entity.js';
+import { UserEntity } from '../user/user.entity.js';
 import { DocumentExistsMiddleware } from '../../libs/middleware/index.js';
 
 type ParamsOfferId = {
@@ -42,6 +43,7 @@ export class CommentController extends BaseController {
       method: HttpMethod.Post,
       handler: this.create,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateObjectIdMiddleware('offerId'),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
         new ValidateDtoMiddleware(CreateCommentDto)
@@ -58,8 +60,13 @@ export class CommentController extends BaseController {
 
   public async create(req: Request<ParamsOfferId, Record<string, unknown>, CreateCommentDto>, res: Response): Promise<void> {
     const { offerId } = req.params;
+    const { id: userId } = req.tokenPayload!;
 
-    const result = await this.commentService.create({ ...req.body, offerId: offerId as unknown as Ref<OfferEntity> });
+    const result = await this.commentService.create({
+      ...req.body,
+      offerId: offerId as unknown as Ref<OfferEntity>,
+      userId: userId as unknown as Ref<UserEntity>
+    });
     this.created(res, plainToInstance(CommentRdo, result, { excludeExtraneousValues: true }));
   }
 }

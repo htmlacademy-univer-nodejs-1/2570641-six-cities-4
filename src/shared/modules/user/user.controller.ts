@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { BaseController, HttpMethod, HttpError, ValidateDtoMiddleware } from '../../libs/rest/index.js';
+import { BaseController, HttpMethod, HttpError, ValidateDtoMiddleware, PrivateRouteMiddleware } from '../../libs/rest/index.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { ConfigInterface } from '../../config/config.interface.js';
 import { types } from '../../container/types.js';
@@ -12,6 +12,7 @@ import { UserRdo } from './rdo/user.rdo.js';
 import { LoginRdo } from './rdo/login.rdo.js';
 import { plainToInstance } from 'class-transformer';
 import { UploadFileMiddleware, DocumentExistsMiddleware } from '../../libs/middleware/index.js';
+import { AuthService } from '../auth/auth-service.interface.js';
 
 @injectable()
 export class UserController extends BaseController {
@@ -19,6 +20,7 @@ export class UserController extends BaseController {
     @inject(types.LoggerInterface) protected readonly logger: LoggerInterface,
     @inject(types.ConfigInterface) private readonly configService: ConfigInterface,
     @inject(types.UserServiceInterface) private readonly userService: UserServiceInterface,
+    @inject(types.AuthService) private readonly authService: AuthService,
   ) {
     super(logger);
 
@@ -36,13 +38,19 @@ export class UserController extends BaseController {
       handler: this.login,
       middlewares: [new ValidateDtoMiddleware(LoginUserDto)]
     });
-    this.addRoute({ path: '/check', method: HttpMethod.Get, handler: this.checkUser });
+    this.addRoute({
+      path: '/check',
+      method: HttpMethod.Get,
+      handler: this.checkUser,
+      middlewares: [new PrivateRouteMiddleware()]
+    });
 
     this.addRoute({
       path: '/:userId/avatar',
       method: HttpMethod.Post,
       handler: this.uploadAvatar,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new DocumentExistsMiddleware(this.userService, 'User', 'userId'),
         new UploadFileMiddleware(this.configService.get<string>('UPLOAD_DIRECTORY'), 'avatar'),
       ]
@@ -65,32 +73,25 @@ export class UserController extends BaseController {
   }
 
   public async login(req: Request<Record<string, unknown>, Record<string, unknown>, LoginUserDto>, res: Response): Promise<void> {
-    const user = await this.userService.verifyUser(req.body, req.body.password);
-
-    if (!user) {
-      throw new HttpError(
-        StatusCodes.UNAUTHORIZED,
-        'Unauthorized',
-        'UserController',
-      );
-    }
-
-    const token = 'mock_jwt_token'; // TODO: Generate real JWT token
+    const user = await this.authService.verify(req.body);
+    const token = await this.authService.authenticate(user);
 
     this.ok(res, plainToInstance(LoginRdo, { token, email: user.email }, { excludeExtraneousValues: true }));
   }
 
-  public async checkUser(_req: Request, res: Response): Promise<void> {
-    // TODO: Extract user from JWT token
-    // Mock response for now
-    const mockUser = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      type: 'Regular'
-    };
+  public async checkUser(req: Request, res: Response): Promise<void> {
+    const { email } = req.tokenPayload!;
+    const foundUser = await this.userService.findByEmail(email);
 
-    this.ok(res, plainToInstance(UserRdo, mockUser, { excludeExtraneousValues: true }));
+    if (!foundUser) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'Unauthorized',
+        'UserController'
+      );
+    }
+
+    this.ok(res, plainToInstance(UserRdo, foundUser, { excludeExtraneousValues: true }));
   }
 
   public async uploadAvatar(req: Request, res: Response): Promise<void> {
