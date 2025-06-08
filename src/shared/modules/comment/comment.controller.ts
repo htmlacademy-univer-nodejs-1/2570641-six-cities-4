@@ -1,9 +1,8 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
 import { plainToInstance } from 'class-transformer';
 import { Ref } from '@typegoose/typegoose';
-import { BaseController, HttpMethod, HttpError, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from '../../libs/rest/index.js';
+import { BaseController, HttpMethod, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from '../../libs/rest/index.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { types } from '../../container/types.js';
 import { CommentServiceInterface } from './comment-service.interface.js';
@@ -11,6 +10,7 @@ import { CreateCommentDto } from './dto/create-comment.dto.js';
 import { CommentRdo } from './rdo/comment.rdo.js';
 import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import { OfferEntity } from '../offer/offer.entity.js';
+import { DocumentExistsMiddleware } from '../../libs/middleware/index.js';
 
 type ParamsOfferId = {
   offerId: string;
@@ -32,7 +32,8 @@ export class CommentController extends BaseController {
       method: HttpMethod.Get,
       handler: this.index,
       middlewares: [
-        new ValidateObjectIdMiddleware('offerId')
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
       ]
     });
 
@@ -42,6 +43,7 @@ export class CommentController extends BaseController {
       handler: this.create,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
         new ValidateDtoMiddleware(CreateCommentDto)
       ]
     });
@@ -50,30 +52,12 @@ export class CommentController extends BaseController {
   public async index(req: Request<ParamsOfferId>, res: Response): Promise<void> {
     const { offerId } = req.params;
 
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'CommentController'
-      );
-    }
-
     const comments = await this.commentService.findByOfferId(offerId);
     this.ok(res, plainToInstance(CommentRdo, comments, { excludeExtraneousValues: true }));
   }
 
   public async create(req: Request<ParamsOfferId, Record<string, unknown>, CreateCommentDto>, res: Response): Promise<void> {
     const { offerId } = req.params;
-
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'CommentController'
-      );
-    }
 
     const result = await this.commentService.create({ ...req.body, offerId: offerId as unknown as Ref<OfferEntity> });
     this.created(res, plainToInstance(CommentRdo, result, { excludeExtraneousValues: true }));

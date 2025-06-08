@@ -1,0 +1,107 @@
+### Регистрация пользователя
+POST http://localhost:3500/users/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "123456",
+  "type": "Regular"
+}
+
+### Вход пользователя
+POST http://localhost:3500/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "123456"
+}
+
+### Проверка статуса пользователя
+GET http://localhost:3500/users/check
+
+### Загрузка аватара пользователя
+POST http://localhost:3500/users/507f1f77bcf86cd799439011/avatar
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="avatar.jpg"
+Content-Type: image/jpeg
+
+< ./test-avatar.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Получение списка предложений
+GET http://localhost:3500/offers
+
+### Создание предложения
+POST http://localhost:3500/offers
+Content-Type: application/json
+
+{
+  "title": "Beautiful apartment in the city center",
+  "description": "A lovely apartment with all amenities",
+  "city": "Paris",
+  "previewImage": "preview.jpg",
+  "images": [
+    "image1.jpg",
+    "image2.jpg", 
+    "image3.jpg",
+    "image4.jpg",
+    "image5.jpg",
+    "image6.jpg"
+  ],
+  "isPremium": false,
+  "rating": 4.5,
+  "type": "apartment",
+  "bedrooms": 2,
+  "maxAdults": 4,
+  "price": 150,
+  "goods": ["Breakfast", "Air conditioning"],
+  "host": "507f1f77bcf86cd799439011",
+  "location": {
+    "latitude": 48.85661,
+    "longitude": 2.351499
+  }
+}
+
+### Получение детальной информации о предложении
+GET http://localhost:3500/offers/507f1f77bcf86cd799439012
+
+### Обновление предложения
+PATCH http://localhost:3500/offers/507f1f77bcf86cd799439012
+Content-Type: application/json
+
+{
+  "title": "Updated apartment title",
+  "price": 200
+}
+
+### Удаление предложения
+DELETE http://localhost:3500/offers/507f1f77bcf86cd799439012
+
+### Получение премиальных предложений для города
+GET http://localhost:3500/offers/premium/Paris
+
+### Получение комментариев для предложения
+GET http://localhost:3500/comments/507f1f77bcf86cd799439012
+
+### Добавление комментария
+POST http://localhost:3500/comments/507f1f77bcf86cd799439012
+Content-Type: application/json
+
+{
+  "text": "Great place to stay!",
+  "rating": 5,
+  "userId": "507f1f77bcf86cd799439011"
+}
+
+### Получение избранных предложений
+GET http://localhost:3500/favorites
+
+### Добавление в избранное
+POST http://localhost:3500/favorites/507f1f77bcf86cd799439012/1
+
+### Удаление из избранного
+POST http://localhost:3500/favorites/507f1f77bcf86cd799439012/0 

@@ -22,7 +22,7 @@ export class OfferService implements OfferServiceInterface {
     const offer = {
       ...dto,
       date: new Date(),
-      rating: 0,
+      rating: 1,
       commentCount: 0,
       isFavorite: false
     };
@@ -59,5 +59,10 @@ export class OfferService implements OfferServiceInterface {
   public async findByUserId(_userId: string): Promise<DocumentType<OfferEntity>[]> {
     // TODO: Implement finding offers by user ID
     return [];
+  }
+
+  public async exists(documentId: string): Promise<boolean> {
+    const offer = await this.findById(documentId);
+    return offer !== null;
   }
 }

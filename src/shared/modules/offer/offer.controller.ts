@@ -11,6 +11,7 @@ import { OfferRdo } from './rdo/offer.rdo.js';
 import { OfferPreviewRdo } from './rdo/offer-preview.rdo.js';
 import { plainToInstance } from 'class-transformer';
 import { City } from './city.enum.js';
+import { DocumentExistsMiddleware } from '../../libs/middleware/index.js';
 
 type ParamsOfferId = {
   offerId: string;
@@ -45,7 +46,10 @@ export class OfferController extends BaseController {
       path: '/:offerId',
       method: HttpMethod.Get,
       handler: this.show,
-      middlewares: [new ValidateObjectIdMiddleware('offerId')]
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
+      ]
     });
     this.addRoute({
       path: '/:offerId',
@@ -53,6 +57,7 @@ export class OfferController extends BaseController {
       handler: this.update,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
         new ValidateDtoMiddleware(UpdateOfferDto)
       ]
     });
@@ -60,7 +65,10 @@ export class OfferController extends BaseController {
       path: '/:offerId',
       method: HttpMethod.Delete,
       handler: this.delete,
-      middlewares: [new ValidateObjectIdMiddleware('offerId')]
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
+      ]
     });
     this.addRoute({ path: '/premium/:city', method: HttpMethod.Get, handler: this.showPremium });
   }
@@ -80,14 +88,6 @@ export class OfferController extends BaseController {
     const { offerId } = req.params;
     const offer = await this.offerService.findById(offerId);
 
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'OfferController'
-      );
-    }
-
     this.ok(res, plainToInstance(OfferRdo, offer, { excludeExtraneousValues: true }));
   }
 
@@ -95,28 +95,12 @@ export class OfferController extends BaseController {
     const { offerId } = req.params;
     const updatedOffer = await this.offerService.updateById(offerId, req.body);
 
-    if (!updatedOffer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'OfferController'
-      );
-    }
-
     this.ok(res, plainToInstance(OfferRdo, updatedOffer, { excludeExtraneousValues: true }));
   }
 
   public async delete(req: Request<ParamsOfferId>, res: Response): Promise<void> {
     const { offerId } = req.params;
-    const offer = await this.offerService.deleteById(offerId);
-
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'OfferController'
-      );
-    }
+    await this.offerService.deleteById(offerId);
 
     this.noContent(res, null);
   }

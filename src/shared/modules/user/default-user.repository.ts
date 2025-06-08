@@ -27,4 +27,11 @@ export class DefaultUserRepository implements UserRepositoryInterface {
     this.logger.info('Creating a new user', { email: item.email });
     return this.userModel.create(item) as unknown as DocumentType<UserEntity>;
   }
+
+  public async updateAvatar(userId: string, avatarPath: string): Promise<DocumentType<UserEntity> | null> {
+    this.logger.info(`Updating avatar for user ${userId} to ${avatarPath}`);
+    return this.userModel
+      .findByIdAndUpdate(userId, { avatarPath }, { new: true })
+      .exec() as Promise<DocumentType<UserEntity> | null>;
+  }
 }
