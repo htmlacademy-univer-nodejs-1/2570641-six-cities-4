@@ -53,6 +53,11 @@ export class UserService implements UserServiceInterface {
     return user !== null;
   }
 
+  public async exists(documentId: string): Promise<boolean> {
+    const user = await this.findById(documentId);
+    return user !== null;
+  }
+
   private async hashPassword(password: string): Promise<string> {
     const salt = crypto.randomBytes(16).toString('hex');
     return new Promise((resolve, reject) => {

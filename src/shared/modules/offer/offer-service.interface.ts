@@ -3,8 +3,9 @@ import { OfferEntity } from './offer.entity.js';
 import { CreateOfferDto } from './dto/create-offer.dto.js';
 import { UpdateOfferDto } from './dto/update-offer.dto.js';
 import { City } from './city.enum.js';
+import { DocumentExistenceInterface } from '../../types/document-existence.interface.js';
 
-export interface OfferServiceInterface {
+export interface OfferServiceInterface extends DocumentExistenceInterface {
   create(dto: CreateOfferDto): Promise<DocumentType<OfferEntity>>;
   findById(offerId: string): Promise<DocumentType<OfferEntity> | null>;
   find(limit?: number): Promise<DocumentType<OfferEntity>[]>;

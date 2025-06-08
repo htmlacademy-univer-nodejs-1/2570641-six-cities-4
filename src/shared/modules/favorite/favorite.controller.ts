@@ -5,9 +5,11 @@ import { BaseController, HttpMethod, HttpError, ValidateObjectIdMiddleware } fro
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { types } from '../../container/types.js';
 import { FavoriteServiceInterface } from './favorite-service.interface.js';
+import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import { OfferPreviewRdo } from '../offer/rdo/offer-preview.rdo.js';
 import { OfferRdo } from '../offer/rdo/offer.rdo.js';
 import { plainToInstance } from 'class-transformer';
+import { DocumentExistsMiddleware } from '../../libs/middleware/index.js';
 
 type ParamsOfferId = {
   offerId: string;
@@ -22,6 +24,7 @@ export class FavoriteController extends BaseController {
   constructor(
     @inject(types.LoggerInterface) protected readonly logger: LoggerInterface,
     @inject(types.FavoriteServiceInterface) private readonly favoriteService: FavoriteServiceInterface,
+    @inject(types.OfferServiceInterface) private readonly offerService: OfferServiceInterface,
   ) {
     super(logger);
 
@@ -32,7 +35,10 @@ export class FavoriteController extends BaseController {
       path: '/:offerId/:status',
       method: HttpMethod.Post,
       handler: this.toggleFavorite,
-      middlewares: [new ValidateObjectIdMiddleware('offerId')]
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
+      ]
     });
   }
 
@@ -63,14 +69,6 @@ export class FavoriteController extends BaseController {
       result = await this.favoriteService.addToFavorites(userId, offerId);
     } else {
       result = await this.favoriteService.removeFromFavorites(userId, offerId);
-    }
-
-    if (!result) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'FavoriteController'
-      );
     }
 
     this.ok(res, plainToInstance(OfferRdo, result, { excludeExtraneousValues: true }));

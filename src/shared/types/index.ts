@@ -1,5 +1,6 @@
 export * from './comment.type.js';
 export * from './coordinates.type.js';
+export * from './document-existence.interface.js';
 export * from './offer-city.enum.type.js';
 export * from './offer-convenience.enum.type.js';
 export * from './offer-type.enum.type.js';

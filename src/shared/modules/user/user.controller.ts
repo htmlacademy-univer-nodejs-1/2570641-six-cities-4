@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { BaseController, HttpMethod, HttpError, ValidateDtoMiddleware } from '../../libs/rest/index.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
+import { ConfigInterface } from '../../config/config.interface.js';
 import { types } from '../../container/types.js';
 import { UserServiceInterface } from './user-service.interface.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
@@ -10,11 +11,13 @@ import { LoginUserDto } from './dto/login-user.dto.js';
 import { UserRdo } from './rdo/user.rdo.js';
 import { LoginRdo } from './rdo/login.rdo.js';
 import { plainToInstance } from 'class-transformer';
+import { UploadFileMiddleware, DocumentExistsMiddleware } from '../../libs/middleware/index.js';
 
 @injectable()
 export class UserController extends BaseController {
   constructor(
     @inject(types.LoggerInterface) protected readonly logger: LoggerInterface,
+    @inject(types.ConfigInterface) private readonly configService: ConfigInterface,
     @inject(types.UserServiceInterface) private readonly userService: UserServiceInterface,
   ) {
     super(logger);
@@ -34,6 +37,17 @@ export class UserController extends BaseController {
       middlewares: [new ValidateDtoMiddleware(LoginUserDto)]
     });
     this.addRoute({ path: '/check', method: HttpMethod.Get, handler: this.checkUser });
+
+    // Маршрут загрузки аватара пользователя согласно техническому заданию
+    this.addRoute({
+      path: '/:userId/avatar',
+      method: HttpMethod.Post,
+      handler: this.uploadAvatar,
+      middlewares: [
+        new DocumentExistsMiddleware(this.userService, 'User', 'userId'),
+        new UploadFileMiddleware(this.configService.get<string>('UPLOAD_DIRECTORY'), 'avatar'),
+      ]
+    });
   }
 
   public async register(req: Request<Record<string, unknown>, Record<string, unknown>, CreateUserDto>, res: Response): Promise<void> {
@@ -78,5 +92,24 @@ export class UserController extends BaseController {
     };
 
     this.ok(res, plainToInstance(UserRdo, mockUser, { excludeExtraneousValues: true }));
+  }
+
+  public async uploadAvatar(req: Request, res: Response): Promise<void> {
+    const uploadFile = req.file;
+
+    if (!uploadFile) {
+      throw new HttpError(
+        StatusCodes.BAD_REQUEST,
+        'Avatar file is required',
+        'UserController'
+      );
+    }
+
+    const avatarPath = `/static/${uploadFile.filename}`;
+
+    // TODO: Update user avatar in database
+    // await this.userService.updateAvatar(userId, avatarPath);
+
+    this.created(res, { avatarPath });
   }
 }

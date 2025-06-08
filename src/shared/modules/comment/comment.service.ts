@@ -30,8 +30,17 @@ export class CommentService implements CommentServiceInterface {
     return this.commentRepository.findByOfferId(offerId);
   }
 
+  public async findById(commentId: string): Promise<DocumentType<CommentEntity> | null> {
+    return this.commentRepository.findById(commentId);
+  }
+
   public async deleteByOfferId(offerId: string): Promise<number> {
     return this.commentRepository.deleteByOfferId(offerId);
+  }
+
+  public async exists(documentId: string): Promise<boolean> {
+    const comment = await this.findById(documentId);
+    return comment !== null;
   }
 
   private async updateOfferRating(offerId: string): Promise<void> {

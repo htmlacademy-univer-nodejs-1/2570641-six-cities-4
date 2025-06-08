@@ -45,6 +45,9 @@ export class Application {
 
   private async initMiddleware(): Promise<void> {
     this.server.use(express.json());
+
+    const uploadDirectory = this.config.get<string>('UPLOAD_DIRECTORY');
+    this.server.use('/static', express.static(uploadDirectory));
   }
 
   private async initExceptionFilters(): Promise<void> {
