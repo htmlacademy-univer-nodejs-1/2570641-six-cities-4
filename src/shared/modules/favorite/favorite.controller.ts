@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { BaseController, HttpMethod, HttpError } from '../../libs/rest/index.js';
+import { BaseController, HttpMethod, HttpError, ValidateObjectIdMiddleware } from '../../libs/rest/index.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { types } from '../../container/types.js';
 import { FavoriteServiceInterface } from './favorite-service.interface.js';
@@ -28,7 +28,12 @@ export class FavoriteController extends BaseController {
     this.logger.info('Register routes for FavoriteController…');
 
     this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index });
-    this.addRoute({ path: '/:offerId/:status', method: HttpMethod.Post, handler: this.toggleFavorite });
+    this.addRoute({
+      path: '/:offerId/:status',
+      method: HttpMethod.Post,
+      handler: this.toggleFavorite,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')]
+    });
   }
 
   public async index(_req: Request, res: Response): Promise<void> {

@@ -2,12 +2,13 @@ import { inject, injectable } from 'inversify';
 import { DocumentType } from '@typegoose/typegoose';
 import { CommentEntity } from './comment.entity.js';
 import { CommentRepositoryInterface } from './comment-repository.interface.js';
+import { CommentServiceInterface } from './comment-service.interface.js';
 import { COMPONENT } from '../../types/component.types.js';
 import { CreateCommentDto } from './dto/create-comment.dto.js';
 import { OfferRepositoryInterface } from '../offer/offer-repository.interface.js';
 
 @injectable()
-export class CommentService {
+export class CommentService implements CommentServiceInterface {
   constructor(
     @inject(COMPONENT.CommentRepositoryInterface) private readonly commentRepository: CommentRepositoryInterface,
     @inject(COMPONENT.OfferRepositoryInterface) private readonly offerRepository: OfferRepositoryInterface

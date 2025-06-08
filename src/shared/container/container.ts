@@ -35,6 +35,12 @@ import { FavoriteService } from '../modules/favorite/favorite.service.js';
 import { FavoriteRepositoryInterface } from '../modules/favorite/favorite-repository.interface.js';
 import { DefaultFavoriteRepository } from '../modules/favorite/default-favorite.repository.js';
 import { FavoriteEntity } from '../modules/favorite/favorite.entity.js';
+import { CommentEntity } from '../modules/comment/comment.entity.js';
+import { CommentService } from '../modules/comment/comment.service.js';
+import { CommentServiceInterface } from '../modules/comment/comment-service.interface.js';
+import { CommentRepositoryInterface } from '../modules/comment/comment-repository.interface.js';
+import { DefaultCommentRepository } from '../modules/comment/default-comment.repository.js';
+import { CommentController } from '../modules/comment/comment.controller.js';
 import { AppExceptionFilter, HttpExceptionFilter, ValidationExceptionFilter, ControllerInterface, ExceptionFilter } from '../libs/rest/index.js';
 import { getModelForClass } from '@typegoose/typegoose';
 
@@ -50,21 +56,25 @@ container.bind<DatabaseInterface>(types.DatabaseInterface).to(MongoDatabase).inS
 container.bind<UserServiceInterface>(types.UserServiceInterface).to(UserService).inSingletonScope();
 container.bind<OfferServiceInterface>(types.OfferServiceInterface).to(OfferService).inSingletonScope();
 container.bind<FavoriteServiceInterface>(types.FavoriteServiceInterface).to(FavoriteService).inSingletonScope();
+container.bind<CommentServiceInterface>(types.CommentServiceInterface).to(CommentService).inSingletonScope();
 
 // Repositories
 container.bind<UserRepositoryInterface>(types.UserRepositoryInterface).to(DefaultUserRepository).inSingletonScope();
 container.bind<OfferRepositoryInterface>(types.OfferRepositoryInterface).to(DefaultOfferRepository).inSingletonScope();
 container.bind<FavoriteRepositoryInterface>(types.FavoriteRepositoryInterface).to(DefaultFavoriteRepository).inSingletonScope();
+container.bind<CommentRepositoryInterface>(types.CommentRepositoryInterface).to(DefaultCommentRepository).inSingletonScope();
 
 // Controllers
 container.bind<ControllerInterface>(types.UserController).to(UserController).inSingletonScope();
 container.bind<ControllerInterface>(types.OfferController).to(OfferController).inSingletonScope();
 container.bind<ControllerInterface>(types.FavoriteController).to(FavoriteController).inSingletonScope();
+container.bind<ControllerInterface>(types.CommentController).to(CommentController).inSingletonScope();
 
 // Models
 container.bind(types.UserModel).toConstantValue(getModelForClass(UserEntity));
 container.bind(types.OfferModel).toConstantValue(getModelForClass(OfferEntity));
 container.bind(types.FavoriteModel).toConstantValue(getModelForClass(FavoriteEntity));
+container.bind(types.CommentModel).toConstantValue(getModelForClass(CommentEntity));
 
 // Exception Filters
 container.bind<ExceptionFilter>(types.AppExceptionFilter).to(AppExceptionFilter).inSingletonScope();
