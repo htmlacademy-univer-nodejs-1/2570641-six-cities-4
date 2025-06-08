@@ -38,7 +38,6 @@ export class UserController extends BaseController {
     });
     this.addRoute({ path: '/check', method: HttpMethod.Get, handler: this.checkUser });
 
-    // Маршрут загрузки аватара пользователя согласно техническому заданию
     this.addRoute({
       path: '/:userId/avatar',
       method: HttpMethod.Post,
@@ -96,6 +95,7 @@ export class UserController extends BaseController {
 
   public async uploadAvatar(req: Request, res: Response): Promise<void> {
     const uploadFile = req.file;
+    const { userId } = req.params;
 
     if (!uploadFile) {
       throw new HttpError(
@@ -107,8 +107,7 @@ export class UserController extends BaseController {
 
     const avatarPath = `/static/${uploadFile.filename}`;
 
-    // TODO: Update user avatar in database
-    // await this.userService.updateAvatar(userId, avatarPath);
+    await this.userService.updateAvatar(userId, avatarPath);
 
     this.created(res, { avatarPath });
   }

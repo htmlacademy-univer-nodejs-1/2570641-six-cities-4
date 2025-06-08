@@ -4,4 +4,5 @@ import { UserEntity } from './user.entity.js';
 
 export interface UserRepositoryInterface extends BaseRepositoryInterface<UserEntity> {
   findByEmail(email: string): Promise<DocumentType<UserEntity> | null>;
+  updateAvatar(userId: string, avatarPath: string): Promise<DocumentType<UserEntity> | null>;
 }

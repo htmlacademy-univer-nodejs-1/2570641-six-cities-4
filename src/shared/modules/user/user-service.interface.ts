@@ -10,4 +10,5 @@ export interface UserServiceInterface extends DocumentExistenceInterface {
   create(dto: CreateUserDto, password: string): Promise<DocumentType<UserEntity>>;
   verifyUser(dto: LoginUserDto, password: string): Promise<DocumentType<UserEntity> | null>;
   checkUserExists(email: string): Promise<boolean>;
+  updateAvatar(userId: string, avatarPath: string): Promise<DocumentType<UserEntity> | null>;
 }

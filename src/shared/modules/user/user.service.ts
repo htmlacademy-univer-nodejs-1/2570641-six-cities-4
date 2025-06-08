@@ -58,6 +58,11 @@ export class UserService implements UserServiceInterface {
     return user !== null;
   }
 
+  public async updateAvatar(userId: string, avatarPath: string): Promise<DocumentType<UserEntity> | null> {
+    this.logger.info(`Updating avatar for user ${userId}`);
+    return this.userRepository.updateAvatar(userId, avatarPath);
+  }
+
   private async hashPassword(password: string): Promise<string> {
     const salt = crypto.randomBytes(16).toString('hex');
     return new Promise((resolve, reject) => {
