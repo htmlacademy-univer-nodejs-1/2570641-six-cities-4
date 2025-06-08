@@ -27,4 +27,4 @@ export class ValidationExceptionFilter implements ExceptionFilter {
       .status(StatusCodes.BAD_REQUEST)
       .json(createErrorObject(ApplicationError.ValidationError, error.message, error.details));
   }
-} 
+}

@@ -16,4 +16,4 @@ export class UserRdo {
 
   @Expose()
   public type!: UserType;
-} 
+}

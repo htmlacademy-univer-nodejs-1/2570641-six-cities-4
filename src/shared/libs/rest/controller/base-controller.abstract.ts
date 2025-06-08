@@ -51,4 +51,4 @@ export abstract class BaseController implements ControllerInterface {
   public ok<T>(res: Response, data: T): void {
     this.send(res, StatusCodes.OK, data);
   }
-} 
+}

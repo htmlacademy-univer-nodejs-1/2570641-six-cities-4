@@ -35,4 +35,4 @@ export class OfferPreviewRdo {
 
   @Expose()
   public commentCount!: number;
-} 
+}

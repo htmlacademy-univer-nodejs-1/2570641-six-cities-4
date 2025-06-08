@@ -60,4 +60,4 @@ export class OfferRdo {
 
   @Expose()
   public location!: Location;
-} 
+}

@@ -8,4 +8,4 @@ export interface ControllerInterface {
   ok<T>(res: Response, data: T): void;
   created<T>(res: Response, data: T): void;
   noContent<T>(res: Response, data: T): void;
-} 
+}

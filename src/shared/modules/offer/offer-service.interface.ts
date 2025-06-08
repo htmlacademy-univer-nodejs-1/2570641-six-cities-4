@@ -14,4 +14,4 @@ export interface OfferServiceInterface {
   incCommentCount(offerId: string): Promise<DocumentType<OfferEntity> | null>;
   calculateRating(offerId: string): Promise<number>;
   findByUserId(userId: string): Promise<DocumentType<OfferEntity>[]>;
-} 
+}

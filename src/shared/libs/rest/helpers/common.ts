@@ -4,4 +4,4 @@ export const createErrorObject = (errorType: ApplicationError, message: string, 
   errorType,
   message,
   details: details ?? []
-}); 
+});

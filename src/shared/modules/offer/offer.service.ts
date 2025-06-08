@@ -47,7 +47,6 @@ export class OfferService implements OfferServiceInterface {
   }
 
 
-
   public async incCommentCount(offerId: string): Promise<DocumentType<OfferEntity> | null> {
     return this.offerRepository.incCommentCount(offerId);
   }

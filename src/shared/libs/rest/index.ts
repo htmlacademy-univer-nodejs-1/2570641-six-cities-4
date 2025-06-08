@@ -10,4 +10,4 @@ export { createErrorObject } from './helpers/common.js';
 export { HttpError } from './errors/http-error.js';
 export { ValidationError } from './errors/validation-error.js';
 export { MiddlewareInterface } from './middleware/middleware.interface.js';
-export { ApplicationError } from './types/application-error.enum.js'; 
+export { ApplicationError } from './types/application-error.enum.js';

@@ -26,4 +26,4 @@ export class HttpExceptionFilter implements ExceptionFilter {
       .status(error.httpStatusCode)
       .json(createErrorObject(ApplicationError.ServiceError, error.message, [error.detail]));
   }
-} 
+}

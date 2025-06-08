@@ -4,4 +4,4 @@ export enum HttpMethod {
   Delete = 'delete',
   Patch = 'patch',
   Put = 'put',
-} 
+}

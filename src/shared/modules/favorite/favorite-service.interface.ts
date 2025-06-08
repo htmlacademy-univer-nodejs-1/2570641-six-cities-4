@@ -5,4 +5,4 @@ export interface FavoriteServiceInterface {
   findByUserId(userId: string): Promise<DocumentType<OfferEntity>[]>;
   addToFavorites(userId: string, offerId: string): Promise<DocumentType<OfferEntity> | null>;
   removeFromFavorites(userId: string, offerId: string): Promise<DocumentType<OfferEntity> | null>;
-} 
+}

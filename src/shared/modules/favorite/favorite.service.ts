@@ -69,7 +69,7 @@ export class FavoriteService implements FavoriteServiceInterface {
 
   public async removeFromFavorites(userId: string, offerId: string): Promise<DocumentType<OfferEntity> | null> {
     await this.favoriteRepository.deleteByUserIdAndOfferId(userId, offerId);
-    
+
     const offer = await this.offerRepository.findById(offerId);
     if (offer) {
       offer.isFavorite = false;

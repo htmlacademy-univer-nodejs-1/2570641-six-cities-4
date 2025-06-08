@@ -40,7 +40,7 @@ export class FavoriteController extends BaseController {
 
   public async toggleFavorite(req: Request<ParamsOfferId & ParamsStatus>, res: Response): Promise<void> {
     const { offerId, status } = req.params;
-    
+
     if (status !== '0' && status !== '1') {
       throw new HttpError(
         StatusCodes.BAD_REQUEST,
@@ -70,4 +70,4 @@ export class FavoriteController extends BaseController {
 
     this.ok(res, plainToInstance(OfferRdo, result, { excludeExtraneousValues: true }));
   }
-} 
+}

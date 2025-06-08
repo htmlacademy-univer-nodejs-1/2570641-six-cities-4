@@ -69,4 +69,4 @@ export class UserController extends BaseController {
 
     this.ok(res, plainToInstance(UserRdo, mockUser, { excludeExtraneousValues: true }));
   }
-} 
+}

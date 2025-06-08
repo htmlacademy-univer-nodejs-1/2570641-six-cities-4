@@ -9,4 +9,4 @@ export interface UserServiceInterface {
   create(dto: CreateUserDto, password: string): Promise<DocumentType<UserEntity>>;
   verifyUser(dto: LoginUserDto, password: string): Promise<DocumentType<UserEntity> | null>;
   checkUserExists(email: string): Promise<boolean>;
-} 
+}

@@ -100,7 +100,7 @@ export class OfferController extends BaseController {
 
   public async showPremium(req: Request<ParamsCity>, res: Response): Promise<void> {
     const { city } = req.params;
-    
+
     if (!Object.values(City).includes(city as City)) {
       throw new HttpError(
         StatusCodes.BAD_REQUEST,
@@ -112,4 +112,4 @@ export class OfferController extends BaseController {
     const offers = await this.offerService.findPremiumByCity(city as City);
     this.ok(res, plainToInstance(OfferPreviewRdo, offers, { excludeExtraneousValues: true }));
   }
-} 
+}
