@@ -19,6 +19,7 @@
     "json-server": "json-server --watch mocks/mock-server-data.json --port 3000"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "18.17.17",
     "@typescript-eslint/eslint-plugin": "6.7.0",
@@ -47,6 +48,7 @@
     "class-validator": "^0.14.2",
     "convict": "^6.2.4",
     "convict-format-with-validator": "^6.2.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",

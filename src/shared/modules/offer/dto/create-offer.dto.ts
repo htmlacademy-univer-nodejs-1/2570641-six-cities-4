@@ -1,4 +1,4 @@
-import { IsString, Length, IsEnum, IsUrl, IsArray, ArrayMinSize, ArrayMaxSize, IsBoolean, IsInt, Min, Max, IsMongoId, ValidateNested } from 'class-validator';
+import { IsString, Length, IsEnum, IsUrl, IsArray, ArrayMinSize, ArrayMaxSize, IsBoolean, IsInt, Min, Max, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { City } from '../city.enum.js';
 import { OfferType } from '../offer-type.enum.js';
@@ -54,7 +54,6 @@ export class CreateOfferDto {
   @IsEnum(Amenity, { each: true, message: 'each amenity must be one of: Breakfast, Air conditioning, Laptop friendly workspace, Baby seat, Washer, Towels, Fridge' })
   public amenities!: Amenity[];
 
-  @IsMongoId({ message: 'userId must be a valid ObjectId' })
   public userId!: Ref<UserEntity>;
 
   @ValidateNested()

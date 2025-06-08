@@ -97,6 +97,15 @@ export class UserController extends BaseController {
   public async uploadAvatar(req: Request, res: Response): Promise<void> {
     const uploadFile = req.file;
     const { userId } = req.params;
+    const { id: currentUserId } = req.tokenPayload!;
+
+    if (userId !== currentUserId) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'Access denied. You can only upload your own avatar.',
+        'UserController'
+      );
+    }
 
     if (!uploadFile) {
       throw new HttpError(
