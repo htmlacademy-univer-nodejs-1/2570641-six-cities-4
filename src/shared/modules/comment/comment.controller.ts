@@ -29,7 +29,7 @@ export class CommentController extends BaseController {
     this.logger.info('Register routes for CommentController…');
 
     this.addRoute({
-      path: '/:offerId',
+      path: '/:offerId/comments',
       method: HttpMethod.Get,
       handler: this.index,
       middlewares: [
@@ -39,7 +39,7 @@ export class CommentController extends BaseController {
     });
 
     this.addRoute({
-      path: '/:offerId',
+      path: '/:offerId/comments',
       method: HttpMethod.Post,
       handler: this.create,
       middlewares: [

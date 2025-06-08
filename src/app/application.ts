@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
 import express, { Express } from 'express';
+import cors from 'cors';
 import { LoggerInterface } from '../shared/libs/logger/logger.interface.js';
 import { ConfigInterface } from '../shared/config/config.interface.js';
 import { DatabaseInterface } from '../shared/libs/database/database.interface.js';
@@ -41,12 +42,13 @@ export class Application {
     this.server.use('/users', this.userController.router);
     this.server.use('/offers', this.offerController.router);
     this.server.use('/favorites', this.favoriteController.router);
-    this.server.use('/comments', this.commentController.router);
+    this.server.use('/offers', this.commentController.router);
   }
 
   private async initMiddleware(): Promise<void> {
     const authenticateMiddleware = new ParseTokenMiddleware(this.config.get<string>('JWT_SECRET'));
 
+    this.server.use(cors());
     this.server.use(express.json());
     this.server.use(authenticateMiddleware.execute.bind(authenticateMiddleware));
 
