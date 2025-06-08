@@ -1,15 +1,15 @@
 import { inject, injectable } from 'inversify';
-import { DocumentType, types } from '@typegoose/typegoose';
+import { DocumentType, types as TypegooseTypes } from '@typegoose/typegoose';
 import { FavoriteEntity } from './favorite.entity.js';
 import { FavoriteRepositoryInterface } from './favorite-repository.interface.js';
-import { COMPONENT } from '../../types/component.types.js';
+import { types } from '../../container/types.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 
 @injectable()
 export class DefaultFavoriteRepository implements FavoriteRepositoryInterface {
   constructor(
-    @inject(COMPONENT.FavoriteModel) private readonly favoriteModel: types.ModelType<FavoriteEntity>,
-    @inject(COMPONENT.LoggerInterface) private readonly logger: LoggerInterface
+    @inject(types.FavoriteModel) private readonly favoriteModel: TypegooseTypes.ModelType<FavoriteEntity>,
+    @inject(types.LoggerInterface) private readonly logger: LoggerInterface
   ) {}
 
   public async findById(id: string): Promise<DocumentType<FavoriteEntity> | null> {

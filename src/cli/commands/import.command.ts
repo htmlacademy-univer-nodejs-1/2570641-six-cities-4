@@ -4,11 +4,10 @@ import { TSVFileReader } from '../../shared/libs/file-reader/index.js';
 import { LoggerInterface } from '../../shared/libs/logger/logger.interface.js';
 import { types } from '../../shared/container/types.js';
 import { DatabaseInterface } from '../../shared/libs/database/database.interface.js';
-import { OfferService } from '../../shared/modules/offer/offer.service.js';
-import { UserService } from '../../shared/modules/user/user.service.js';
+import { OfferServiceInterface } from '../../shared/modules/offer/offer-service.interface.js';
+import { UserServiceInterface } from '../../shared/modules/user/user-service.interface.js';
 import { Offer } from '../../shared/types/offer.type.js';
 import { getURI } from '../../shared/helpers/database.js';
-import { COMPONENT } from '../../shared/types/component.types.js';
 import { UserEntity } from '../../shared/modules/user/user.entity.js';
 import { OfferEntity } from '../../shared/modules/offer/offer.entity.js';
 import { UserType as UserTypeEntity } from '../../shared/modules/user/user-type.enum.js';
@@ -22,8 +21,8 @@ export class ImportCommand implements Command {
   constructor(
     @inject(types.LoggerInterface) private readonly logger: LoggerInterface,
     @inject(types.DatabaseInterface) private readonly databaseClient: DatabaseInterface,
-    @inject(COMPONENT.OfferService) private readonly offerService: OfferService,
-    @inject(COMPONENT.UserService) private readonly userService: UserService
+    @inject(types.OfferServiceInterface) private readonly offerService: OfferServiceInterface,
+    @inject(types.UserServiceInterface) private readonly userService: UserServiceInterface
   ) {}
 
   public getName(): string {
@@ -144,7 +143,7 @@ export class ImportCommand implements Command {
 
         const userId = existingUser ?
           existingUser.id :
-          (await this.userService.create(user)).id;
+          (await this.userService.create(user, user.password)).id;
 
         await this.offerService.create(this.createOffer(offer, userId));
       }

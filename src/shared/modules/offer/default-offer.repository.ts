@@ -3,15 +3,15 @@ import { Model } from 'mongoose';
 import { OfferEntity } from './offer.entity.js';
 import { OfferRepositoryInterface } from './offer-repository.interface.js';
 import { DocumentType } from '@typegoose/typegoose';
-import { COMPONENT } from '../../types/component.types.js';
+import { types } from '../../container/types.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import { City } from './city.enum.js';
 
 @injectable()
 export class DefaultOfferRepository implements OfferRepositoryInterface {
   constructor(
-    @inject(COMPONENT.OfferModel) private readonly offerModel: Model<OfferEntity>,
-    @inject(COMPONENT.LoggerInterface) private readonly logger: LoggerInterface
+    @inject(types.OfferModel) private readonly offerModel: Model<OfferEntity>,
+    @inject(types.LoggerInterface) private readonly logger: LoggerInterface
   ) {}
 
   public async findById(id: string): Promise<DocumentType<OfferEntity> | null> {

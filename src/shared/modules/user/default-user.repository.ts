@@ -3,14 +3,14 @@ import { Model } from 'mongoose';
 import { UserEntity } from './user.entity.js';
 import { UserRepositoryInterface } from './user-repository.interface.js';
 import { DocumentType } from '@typegoose/typegoose';
-import { COMPONENT } from '../../types/component.types.js';
+import { types } from '../../container/types.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 
 @injectable()
 export class DefaultUserRepository implements UserRepositoryInterface {
   constructor(
-    @inject(COMPONENT.UserModel) private readonly userModel: Model<UserEntity>,
-    @inject(COMPONENT.LoggerInterface) private readonly logger: LoggerInterface
+    @inject(types.UserModel) private readonly userModel: Model<UserEntity>,
+    @inject(types.LoggerInterface) private readonly logger: LoggerInterface
   ) {}
 
   public async findById(id: string): Promise<DocumentType<UserEntity> | null> {

@@ -2,17 +2,18 @@ import { inject, injectable } from 'inversify';
 import { DocumentType } from '@typegoose/typegoose';
 import { UserEntity } from './user.entity.js';
 import { UserRepositoryInterface } from './user-repository.interface.js';
-import { COMPONENT } from '../../types/component.types.js';
+import { UserServiceInterface } from './user-service.interface.js';
+import { types } from '../../container/types.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
 import { LoggerInterface } from '../../libs/logger/logger.interface.js';
 import * as crypto from 'node:crypto';
 
 @injectable()
-export class UserService {
+export class UserService implements UserServiceInterface {
   constructor(
-    @inject(COMPONENT.UserRepositoryInterface) private readonly userRepository: UserRepositoryInterface,
-    @inject(COMPONENT.LoggerInterface) private readonly logger: LoggerInterface
+    @inject(types.UserRepositoryInterface) private readonly userRepository: UserRepositoryInterface,
+    @inject(types.LoggerInterface) private readonly logger: LoggerInterface
   ) {}
 
   public async findById(userId: string): Promise<DocumentType<UserEntity> | null> {
@@ -23,24 +24,24 @@ export class UserService {
     return this.userRepository.findByEmail(email);
   }
 
-  public async create(dto: CreateUserDto): Promise<DocumentType<UserEntity>> {
+  public async create(dto: CreateUserDto, password: string): Promise<DocumentType<UserEntity>> {
     const user = {
       ...dto,
-      password: await this.hashPassword(dto.password)
+      password: await this.hashPassword(password)
     };
 
     this.logger.info(`Creating new user: ${user.email}`);
     return this.userRepository.create(user);
   }
 
-  public async verifyUser(dto: LoginUserDto): Promise<DocumentType<UserEntity> | null> {
+  public async verifyUser(dto: LoginUserDto, password: string): Promise<DocumentType<UserEntity> | null> {
     const user = await this.findByEmail(dto.email);
 
     if (!user) {
       return null;
     }
 
-    if (await this.comparePassword(dto.password, user.password)) {
+    if (await this.comparePassword(password, user.password)) {
       return user;
     }
 
