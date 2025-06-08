@@ -1,4 +1,12 @@
 import 'reflect-metadata';
+import { webcrypto } from 'node:crypto';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if (!(globalThis as any).crypto) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).crypto = webcrypto;
+}
+
 import { Application } from './app/index.js';
 import { container, types } from './shared/container/index.js';
 import { LoggerInterface } from './shared/libs/logger/logger.interface.js';

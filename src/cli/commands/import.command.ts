@@ -29,7 +29,7 @@ export class ImportCommand implements Command {
     return '--import';
   }
 
-  private createUser(offer: Offer): Omit<UserEntity, '_id'> {
+  private createUser(offer: Offer) {
     return {
       name: offer.author.name,
       email: offer.author.email,
@@ -138,12 +138,18 @@ export class ImportCommand implements Command {
       const offers = fileReader.toArray();
 
       for (const offer of offers) {
-        const user = this.createUser(offer);
-        const existingUser = await this.userService.findByEmail(user.email);
+        const userData = this.createUser(offer);
+        const existingUser = await this.userService.findByEmail(userData.email);
 
         const userId = existingUser ?
           existingUser.id :
-          (await this.userService.create(user, user.password)).id;
+          (await this.userService.create({
+            name: userData.name,
+            email: userData.email,
+            type: userData.type,
+            avatar: userData.avatar,
+            password: userData.password
+          }, userData.password)).id;
 
         await this.offerService.create(this.createOffer(offer, userId));
       }

@@ -91,4 +91,9 @@ export class FavoriteService implements FavoriteServiceInterface {
       return true;
     }
   }
+
+  public async isFavorite(userId: string, offerId: string): Promise<boolean> {
+    const existingFavorite = await this.favoriteRepository.findByUserIdAndOfferId(userId, offerId);
+    return !!existingFavorite;
+  }
 }

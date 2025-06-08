@@ -43,6 +43,7 @@ import { DefaultCommentRepository } from '../modules/comment/default-comment.rep
 import { CommentController } from '../modules/comment/comment.controller.js';
 import { AppExceptionFilter, HttpExceptionFilter, ValidationExceptionFilter, ControllerInterface, ExceptionFilter } from '../libs/rest/index.js';
 import { getModelForClass } from '@typegoose/typegoose';
+import { AuthService, DefaultAuthService, AuthExceptionFilter } from '../modules/auth/index.js';
 
 const container = new Container();
 
@@ -57,6 +58,7 @@ container.bind<UserServiceInterface>(types.UserServiceInterface).to(UserService)
 container.bind<OfferServiceInterface>(types.OfferServiceInterface).to(OfferService).inSingletonScope();
 container.bind<FavoriteServiceInterface>(types.FavoriteServiceInterface).to(FavoriteService).inSingletonScope();
 container.bind<CommentServiceInterface>(types.CommentServiceInterface).to(CommentService).inSingletonScope();
+container.bind<AuthService>(types.AuthService).to(DefaultAuthService).inSingletonScope();
 
 // Repositories
 container.bind<UserRepositoryInterface>(types.UserRepositoryInterface).to(DefaultUserRepository).inSingletonScope();
@@ -80,6 +82,7 @@ container.bind(types.CommentModel).toConstantValue(getModelForClass(CommentEntit
 container.bind<ExceptionFilter>(types.AppExceptionFilter).to(AppExceptionFilter).inSingletonScope();
 container.bind<ExceptionFilter>(types.HttpExceptionFilter).to(HttpExceptionFilter).inSingletonScope();
 container.bind<ExceptionFilter>(types.ValidationExceptionFilter).to(ValidationExceptionFilter).inSingletonScope();
+container.bind<ExceptionFilter>(types.AuthExceptionFilter).to(AuthExceptionFilter).inSingletonScope();
 
 // CLI
 container.bind<CLIApplication>(types.CLIApplication).to(CLIApplication).inSingletonScope();

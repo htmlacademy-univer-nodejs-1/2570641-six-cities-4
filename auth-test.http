@@ -1,0 +1,82 @@
+### Регистрация нового пользователя
+POST http://localhost:3500/users/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123",
+  "type": "Regular"
+}
+
+### Вход в систему (получение JWT токена)
+POST http://localhost:3500/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Проверка авторизации (требует токен)
+GET http://localhost:3500/users/check
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Создание предложения (требует авторизацию)
+POST http://localhost:3500/offers
+Content-Type: application/json
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+{
+  "title": "Beautiful apartment in Paris",
+  "description": "A lovely apartment with great view",
+  "city": "Paris",
+  "previewImage": "https://example.com/image.jpg",
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg",
+    "https://example.com/image3.jpg",
+    "https://example.com/image4.jpg",
+    "https://example.com/image5.jpg",
+    "https://example.com/image6.jpg"
+  ],
+  "isPremium": false,
+  "type": "apartment",
+  "bedrooms": 2,
+  "maxAdults": 4,
+  "price": 150,
+  "goods": ["Breakfast", "Air conditioning"],
+  "location": {
+    "latitude": 48.85661,
+    "longitude": 2.351499
+  }
+}
+
+### Получение списка предложений (анонимно - isFavorite всегда false)
+GET http://localhost:3500/offers
+
+### Получение списка предложений (с авторизацией - isFavorite определяется)
+GET http://localhost:3500/offers
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Добавление в избранное (требует авторизацию)
+POST http://localhost:3500/favorites/OFFER_ID/1
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Удаление из избранного (требует авторизацию)
+POST http://localhost:3500/favorites/OFFER_ID/0
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Получение списка избранного (требует авторизацию)
+GET http://localhost:3500/favorites
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Добавление комментария (требует авторизацию)
+POST http://localhost:3500/comments/OFFER_ID
+Content-Type: application/json
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+{
+  "comment": "Great place to stay!",
+  "rating": 5
+} 
